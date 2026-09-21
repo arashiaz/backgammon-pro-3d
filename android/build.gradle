@@ -31,7 +31,12 @@ dependencies {
 def nativeOutput = file("$projectDir/src/main/jniLibs")
 
 tasks.register('extractGdxNatives', Sync) {
-    from(configurations.natives.collect { zipTree(it) })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(configurations.natives.collect {
+        zipTree(it).matching {
+            include '**/*.so'
+        }
+    })
     into(nativeOutput)
 }
 
