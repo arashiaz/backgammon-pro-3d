@@ -813,7 +813,17 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Vector3 b1 = new Vector3( w, y1, zBase);
         Vector3 c1 = new Vector3(0f, y1, zTip);
 
-        p.triangle(a1, b1, c1);
+        // Explicit UVs on the visible face. V runs from the wide wooden
+        // base to the point, so the grain follows the long axis naturally.
+        VertexInfo va = new VertexInfo().set(
+                a1, Vector3.Y, null, 0.0f, 0.0f);
+        VertexInfo vb = new VertexInfo().set(
+                b1, Vector3.Y, null, 1.0f, 0.0f);
+        VertexInfo vc = new VertexInfo().set(
+                c1, Vector3.Y, null, 0.5f, 1.0f);
+        p.triangle(va, vb, vc);
+
+        // Keep the side walls closed; they do not need visible grain mapping.
         p.triangle(c0, b0, a0);
         p.triangle(a0, b0, b1);
         p.triangle(a0, b1, a1);
@@ -822,8 +832,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         p.triangle(c0, a0, a1);
         p.triangle(c0, a1, c1);
 
-        // Raised inset face: a smaller, darker/brighter triangular field gives
-        // the point a hand-finished layered-wood appearance.
+        // Raised inset face uses the same deliberate UV layout, but with a
+        // slightly smaller footprint for a layered hand-finished appearance.
         MeshPartBuilder detail = mb.part("point_detail", GL20.GL_TRIANGLES, attrs, detailMaterial);
         final float dw = 0.405f;
         final float dzBase = 1.80f;
@@ -832,7 +842,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Vector3 da = new Vector3(-dw, dy, dzBase);
         Vector3 db = new Vector3( dw, dy, dzBase);
         Vector3 dc = new Vector3(0f, dy, dzTip);
-        detail.triangle(da, db, dc);
+        VertexInfo dva = new VertexInfo().set(
+                da, Vector3.Y, null, 0.05f, 0.05f);
+        VertexInfo dvb = new VertexInfo().set(
+                db, Vector3.Y, null, 0.95f, 0.05f);
+        VertexInfo dvc = new VertexInfo().set(
+                dc, Vector3.Y, null, 0.5f, 0.95f);
+        detail.triangle(dva, dvb, dvc);
 
         return mb.end();
     }
