@@ -67,8 +67,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private float lastX, lastY;
     private boolean dragging;
     private float cameraAzimuth = 0f;
-    private float cameraElevation = 58f;
-    private float cameraDistance = 23.5f;
+    private float cameraElevation = 61f;
+    private float cameraDistance = 19.0f;
 
     private final Vector3 cameraTarget = new Vector3(0f, 0.25f, 0f);
     private final Vector3 tmp = new Vector3();
@@ -419,32 +419,32 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
                 18.6f, 0.72f, 10.7f,
-                wood(0.19f, 0.075f, 0.028f, 18f), attrs);
+                wood(0.13f, 0.042f, 0.016f, 20f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
         playingSurfaceModel = mb.createBox(
                 17.85f, 0.34f, 9.95f,
-                wood(0.34f, 0.13f, 0.045f, 16f), attrs);
+                wood(0.24f, 0.072f, 0.022f, 18f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
                 16.95f, 0.18f, 9.05f,
-                surface(0.44f, 0.22f, 0.075f), attrs);
+                surface(0.31f, 0.125f, 0.040f), attrs);
         models.add(new ModelInstance(felt, 0f, 0.27f, 0f));
 
         railModel = mb.createBox(
                 17.45f, 0.10f, 9.55f,
-                wood(0.62f, 0.27f, 0.075f, 28f), attrs);
+                wood(0.48f, 0.16f, 0.038f, 32f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
         Model innerMat = mb.createBox(
                 16.95f, 0.08f, 9.05f,
-                surface(0.40f, 0.18f, 0.050f), attrs);
+                surface(0.285f, 0.105f, 0.030f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
-        Material innerRailMat = wood(0.56f, 0.22f, 0.055f, 38f);
+        Material innerRailMat = wood(0.44f, 0.14f, 0.032f, 42f);
         Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
         Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
         models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
@@ -455,25 +455,25 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Subtle central divider shoulders, keeping the bar visually integrated.
         Model barShoulder = mb.createBox(
                 0.92f, 0.07f, 9.02f,
-                wood(0.34f, 0.12f, 0.030f, 24f), attrs);
+                wood(0.26f, 0.075f, 0.020f, 26f), attrs);
         models.add(new ModelInstance(barShoulder, 0f, 0.54f, 0f));
 
         // Central bar with a subtle raised center strip.
         barModel = mb.createBox(
                 0.72f, 0.22f, 8.95f,
-                wood(0.22f, 0.085f, 0.028f, 22f), attrs);
+                wood(0.15f, 0.045f, 0.015f, 24f), attrs);
         models.add(new ModelInstance(barModel, 0f, 0.48f, 0f));
 
         Model barHighlight = mb.createBox(
                 0.16f, 0.045f, 8.55f,
-                wood(0.72f, 0.35f, 0.095f, 34f), attrs);
+                wood(0.58f, 0.22f, 0.050f, 40f), attrs);
         models.add(new ModelInstance(barHighlight, 0f, 0.61f, 0f));
 
         // Real flat triangular points, not cones.
         darkPointModel = createPointModel(
-                wood(0.13f, 0.032f, 0.020f, 24f), attrs, true);
+                wood(0.085f, 0.018f, 0.012f, 28f), attrs, true);
         lightPointModel = createPointModel(
-                wood(0.82f, 0.60f, 0.29f, 28f), attrs, false);
+                wood(0.72f, 0.43f, 0.15f, 32f), attrs, false);
 
         float[] xs = XS;
 
@@ -539,7 +539,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         Model diceTrayInset = mb.createBox(
                 3.95f, 0.055f, 1.95f,
-                surface(0.28f, 0.12f, 0.035f), attrs);
+                surface(0.19f, 0.060f, 0.018f), attrs);
         models.add(new ModelInstance(diceTrayInset, 0f, 0.715f, 0f));
 
         // Four small brass-like fasteners on the board corners.
@@ -740,7 +740,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         camera.lookAt(cameraTarget);
         camera.up.set(Vector3.Y);
-        camera.fieldOfView = 38f;
+        camera.fieldOfView = 34f;
         camera.near = 0.1f;
         camera.far = 100f;
         camera.update();
@@ -804,7 +804,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
 
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        Gdx.gl.glClearColor(0.012f, 0.015f, 0.020f, 1f);
+        Gdx.gl.glClearColor(0.008f, 0.010f, 0.014f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
         Gdx.gl.glDepthFunc(GL20.GL_LEQUAL);
