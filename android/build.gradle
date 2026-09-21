@@ -31,13 +31,22 @@ dependencies {
 def nativeOutput = file("$projectDir/src/main/jniLibs")
 
 tasks.register('extractGdxNatives', Sync) {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(configurations.natives.collect {
-        zipTree(it).matching {
-            include '**/*.so'
-        }
-    })
     into(nativeOutput)
+
+    configurations.natives.files.each { nativeJar ->
+        def fileName = nativeJar.name
+        def abi = fileName.contains('arm64-v8a') ? 'arm64-v8a' :
+                  fileName.contains('armeabi-v7a') ? 'armeabi-v7a' :
+                  fileName.contains('x86_64') ? 'x86_64' :
+                  fileName.contains('x86') ? 'x86' : null
+
+        if (abi != null) {
+            from(zipTree(nativeJar)) {
+                include 'libgdx.so'
+                into(abi)
+            }
+        }
+    }
 }
 
 tasks.named('preBuild') {
