@@ -52,3 +52,31 @@ tasks.register('extractGdxNatives', Sync) {
 tasks.named('preBuild') {
     dependsOn('extractGdxNatives')
 }
+
+
+def woodTextureAsset = file("$projectDir/src/main/assets/textures/walnut_veneer_diff_2k.jpg")
+
+tasks.register('downloadWoodTexture') {
+    outputs.file(woodTextureAsset)
+    doLast {
+        if (!woodTextureAsset.parentFile.exists()) {
+            woodTextureAsset.parentFile.mkdirs()
+        }
+        if (!woodTextureAsset.exists() || woodTextureAsset.length() < 100_000) {
+            def url = new URL('https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/walnut_veneer/walnut_veneer_diff_2k.jpg')
+            def connection = url.openConnection()
+            connection.connectTimeout = 20000
+            connection.readTimeout = 60000
+            connection.setRequestProperty('User-Agent', 'BackgammonPro3D-AssetDownloader/1.0')
+            connection.getInputStream().withCloseable { input ->
+                woodTextureAsset.withOutputStream { output ->
+                    output << input
+                }
+            }
+        }
+    }
+}
+
+tasks.named('preBuild') {
+    dependsOn('downloadWoodTexture')
+}
