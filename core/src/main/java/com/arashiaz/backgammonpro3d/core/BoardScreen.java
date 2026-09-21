@@ -498,6 +498,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         ColorAttribute.createDiffuse(0.028f, 0.026f, 0.034f, 1f),
                         ColorAttribute.createSpecular(0.46f, 0.46f, 0.52f, 1f),
                         FloatAttribute.createShininess(68f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.070f, 0.062f, 0.085f, 1f),
+                        ColorAttribute.createSpecular(0.34f, 0.34f, 0.42f, 1f),
+                        FloatAttribute.createShininess(82f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(
@@ -505,6 +509,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         ColorAttribute.createDiffuse(0.90f, 0.80f, 0.60f, 1f),
                         ColorAttribute.createSpecular(0.68f, 0.60f, 0.48f, 1f),
                         FloatAttribute.createShininess(60f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.72f, 0.57f, 0.34f, 1f),
+                        ColorAttribute.createSpecular(0.58f, 0.46f, 0.28f, 1f),
+                        FloatAttribute.createShininess(74f)),
                 attrs);
 
         diceModel = createBeveledDieModel(attrs);
@@ -582,7 +590,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         p.triangle(a, c, d);
     }
 
-    private Model createBeveledCheckerModel(Material material, long attrs) {
+    private Model createBeveledCheckerModel(Material material, Material detailMaterial, long attrs) {
         mb.begin();
         MeshPartBuilder p = mb.part("checker", GL20.GL_TRIANGLES, attrs, material);
 
@@ -625,7 +633,39 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             p.triangle(top0, top1, bot1);
             p.triangle(top0, bot1, bot0);
         }
+
+        // Integrated top medallion: one shared mesh per checker color, so
+        // the detailing follows every animated checker without extra objects.
+        MeshPartBuilder detail = mb.part("checker_detail", GL20.GL_TRIANGLES, attrs, detailMaterial);
+        final float detailY = half + bevelY + 0.006f;
+        addDisc(detail, 0.235f, detailY, 48);
+        addRing(detail, 0.345f, 0.315f, detailY + 0.002f, 64);
+
         return mb.end();
+    }
+
+    private void addDisc(MeshPartBuilder p, float radius, float y, int segments) {
+        Vector3 center = new Vector3(0f, y, 0f);
+        for (int i = 0; i < segments; i++) {
+            float a0 = MathUtils.PI2 * i / segments;
+            float a1 = MathUtils.PI2 * (i + 1) / segments;
+            Vector3 v0 = new Vector3(MathUtils.cos(a0) * radius, y, MathUtils.sin(a0) * radius);
+            Vector3 v1 = new Vector3(MathUtils.cos(a1) * radius, y, MathUtils.sin(a1) * radius);
+            p.triangle(center, v1, v0);
+        }
+    }
+
+    private void addRing(MeshPartBuilder p, float outerRadius, float innerRadius, float y, int segments) {
+        for (int i = 0; i < segments; i++) {
+            float a0 = MathUtils.PI2 * i / segments;
+            float a1 = MathUtils.PI2 * (i + 1) / segments;
+            Vector3 o0 = new Vector3(MathUtils.cos(a0) * outerRadius, y, MathUtils.sin(a0) * outerRadius);
+            Vector3 o1 = new Vector3(MathUtils.cos(a1) * outerRadius, y, MathUtils.sin(a1) * outerRadius);
+            Vector3 in0 = new Vector3(MathUtils.cos(a0) * innerRadius, y, MathUtils.sin(a0) * innerRadius);
+            Vector3 in1 = new Vector3(MathUtils.cos(a1) * innerRadius, y, MathUtils.sin(a1) * innerRadius);
+            p.triangle(o0, o1, in0);
+            p.triangle(o1, in1, in0);
+        }
     }
 
     private Model createPointModel(Material material, long attrs, boolean unused) {
