@@ -160,7 +160,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         addStack(darkChecker,  xs[0],  3.35f, 2);
         addStack(lightChecker, xs[11], -3.35f, 2);
         addStack(darkChecker,  xs[4], -3.35f, 5);
-        addStack(lightChecker, xs[7],  3.35f, 3);\n\n        // Dice and raised black pips.
+        addStack(lightChecker, xs[7],  3.35f, 5);\n\n        // Dice and raised black pips.
         diceModel = mb.createBox(
                 1.28f, 1.28f, 1.28f,
                 new Material(
