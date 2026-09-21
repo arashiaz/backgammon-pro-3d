@@ -82,6 +82,208 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         updateCamera();
     }
 
+
+    private void resetGameState() {
+        for (int i = 0; i < 24; i++) points[i] = 0;
+        points[0] = 2; points[5] = 5; points[7] = 3; points[11] = 5;
+        points[23] = -2; points[18] = -5; points[16] = -3; points[12] = -5;
+        lightBar = darkBar = lightOff = darkOff = 0;
+        lightTurn = true;
+        dice[0] = dice[1] = 0;
+        dieUsed[0] = dieUsed[1] = true;
+        diceRolled = false;
+        selectedPoint = -1;
+        status = "Roll the dice to start";
+        statusTimer = 0f;
+    }
+
+    private boolean allDiceUsed() { return dieUsed[0] && dieUsed[1]; }
+
+    private boolean owns(int point) {
+        return point >= 0 && point < 24 && (lightTurn ? points[point] > 0 : points[point] < 0);
+    }
+
+    private int moveDistance(int from, int to) {
+        return lightTurn ? to - from : from - to;
+    }
+
+    private boolean openPoint(int to) {
+        if (to < 0 || to >= 24) return false;
+        return lightTurn ? points[to] >= -1 : points[to] <= 1;
+    }
+
+    private boolean canMoveWithDie(int from, int to, int die) {
+        return owns(from) && openPoint(to) && moveDistance(from, to) == die;
+    }
+
+    private boolean canUseDie(int from, int die) {
+        int to = lightTurn ? from + die : from - die;
+        return canMoveWithDie(from, to, die);
+    }
+
+    private boolean hasAnyMove() {
+        for (int p = 0; p < 24; p++) {
+            if (!owns(p)) continue;
+            for (int d = 0; d < 2; d++) {
+                if (!dieUsed[d] && canUseDie(p, dice[d])) return true;
+            }
+        }
+        return false;
+    }
+
+    private void rollDice() {
+        if (diceRolled && !allDiceUsed()) {
+            status = "Use the current dice first";
+            statusTimer = 1.1f;
+            return;
+        }
+        dice[0] = MathUtils.random(1, 6);
+        dice[1] = MathUtils.random(1, 6);
+        dieUsed[0] = dieUsed[1] = false;
+        diceRolled = true;
+        selectedPoint = -1;
+        clearMoveMarkers();
+        status = lightTurn ? "Light: choose a checker" : "Dark: choose a checker";
+        statusTimer = 1.5f;
+        rebuildGameObjects();
+    }
+
+    private void rebuildGameObjects() {
+        for (ModelInstance instance : gameObjects) models.removeValue(instance, true);
+        gameObjects.clear();
+
+        addStateStacks();
+
+        ModelInstance dieA = new ModelInstance(diceModel, -1.55f, 1.06f, 0f);
+        ModelInstance dieB = new ModelInstance(diceModel,  1.55f, 1.06f, 0f);
+        gameObjects.add(dieA); models.add(dieA);
+        gameObjects.add(dieB); models.add(dieB);
+        if (dice[0] > 0) addTopPips(-1.55f, 1.72f, 0f, dice[0]);
+        if (dice[1] > 0) addTopPips( 1.55f, 1.72f, 0f, dice[1]);
+    }
+
+    private void addStateStacks() {
+        for (int p = 0; p < 24; p++) {
+            int count = Math.abs(points[p]);
+            if (count == 0) continue;
+            Model model = points[p] > 0 ? lightChecker : darkChecker;
+            for (int i = 0; i < count; i++) {
+                int col = p < 12 ? p : 23 - p;
+                float x = xs[col];
+                float z = p < 12 ? -3.30f + i * 0.43f : 3.30f - i * 0.43f;
+                ModelInstance piece = new ModelInstance(model, x, 0.78f + i * 0.425f, z);
+                gameObjects.add(piece); models.add(piece);
+            }
+        }
+        for (int i = 0; i < lightBar; i++) {
+            ModelInstance piece = new ModelInstance(lightChecker, -0.95f, 0.78f + i * 0.43f, 0f);
+            gameObjects.add(piece); models.add(piece);
+        }
+        for (int i = 0; i < darkBar; i++) {
+            ModelInstance piece = new ModelInstance(darkChecker, 0.95f, 0.78f + i * 0.43f, 0f);
+            gameObjects.add(piece); models.add(piece);
+        }
+    }
+
+    private void selectPoint(int point) {
+        if (!diceRolled || allDiceUsed()) return;
+        if (!owns(point)) {
+            status = "Select your checker";
+            statusTimer = 0.9f;
+            return;
+        }
+        boolean movable = false;
+        for (int d = 0; d < 2; d++) if (!dieUsed[d] && canUseDie(point, dice[d])) movable = true;
+        if (!movable) {
+            status = "No legal move for this checker";
+            statusTimer = 0.9f;
+            return;
+        }
+        selectedPoint = selectedPoint == point ? -1 : point;
+        rebuildMoveMarkers();
+    }
+
+    private void rebuildMoveMarkers() {
+        clearMoveMarkers();
+        if (selectedPoint < 0) return;
+        for (int d = 0; d < 2; d++) {
+            if (dieUsed[d]) continue;
+            int to = lightTurn ? selectedPoint + dice[d] : selectedPoint - dice[d];
+            if (canMoveWithDie(selectedPoint, to, dice[d])) {
+                int col = to < 12 ? to : 23 - to;
+                float z = to < 12 ? -3.25f : 3.25f;
+                ModelInstance marker = new ModelInstance(accentModel, xs[col], 0.68f, z);
+                moveMarkers.add(marker);
+            }
+        }
+    }
+
+    private void clearMoveMarkers() { moveMarkers.clear(); }
+
+    private void tryMove(int destination) {
+        if (selectedPoint < 0) {
+            selectPoint(destination);
+            return;
+        }
+        int dieIndex = -1;
+        for (int d = 0; d < 2; d++) {
+            if (!dieUsed[d] && canMoveWithDie(selectedPoint, destination, dice[d])) {
+                dieIndex = d;
+                break;
+            }
+        }
+        if (dieIndex < 0) {
+            if (owns(destination)) selectPoint(destination);
+            else {
+                status = "That move is not allowed";
+                statusTimer = 0.9f;
+            }
+            return;
+        }
+
+        int sign = lightTurn ? 1 : -1;
+        if (lightTurn && points[destination] == -1) { points[destination] = 0; darkBar++; }
+        if (!lightTurn && points[destination] == 1) { points[destination] = 0; lightBar++; }
+        points[selectedPoint] -= sign;
+        points[destination] += sign;
+        dieUsed[dieIndex] = true;
+        selectedPoint = -1;
+        clearMoveMarkers();
+        rebuildGameObjects();
+
+        if (allDiceUsed() || !hasAnyMove()) {
+            lightTurn = !lightTurn;
+            diceRolled = false;
+            dieUsed[0] = dieUsed[1] = true;
+            status = lightTurn ? "Light's turn — roll" : "Dark's turn — roll";
+        } else {
+            status = lightTurn ? "Light: choose your next move" : "Dark: choose your next move";
+        }
+        statusTimer = 1.1f;
+    }
+
+    private int nearestPoint(float x, float z) {
+        int best = -1;
+        float bestDistance = 1.05f;
+        for (int p = 0; p < 24; p++) {
+            int col = p < 12 ? p : 23 - p;
+            float px = xs[col];
+            float pz = p < 12 ? -3.25f : 3.25f;
+            float distance = Vector2.dst(x, z, px, pz);
+            if (distance < bestDistance) { bestDistance = distance; best = p; }
+        }
+        return best;
+    }
+
+    private void pickBoard(int screenX, int screenY) {
+        Ray ray = camera.getPickRay(screenX, screenY);
+        Plane plane = new Plane(Vector3.Y, 0.68f);
+        if (Intersector.intersectRayPlane(ray, plane, tmp)) {
+            int point = nearestPoint(tmp.x, tmp.z);
+            if (point >= 0) tryMove(point);
+        }
+    }
+
     private Material wood(float r, float g, float b, float shine) {
         Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
         m.set(ColorAttribute.createSpecular(
@@ -181,17 +383,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         FloatAttribute.createShininess(48f)),
                 attrs);
 
-        // Standard 15 + 15 starting position.
-        addStack(lightChecker, xs[0], -3.35f, 5);
-        addStack(lightChecker, xs[4],  3.35f, 3);
-        addStack(darkChecker,  xs[11], 3.35f, 5);
-        addStack(darkChecker,  xs[7], -3.35f, 3);
-        addStack(darkChecker,  xs[0],  3.35f, 2);
-        addStack(lightChecker, xs[11], -3.35f, 2);
-        addStack(darkChecker,  xs[4], -3.35f, 5);
-        addStack(lightChecker, xs[7],  3.35f, 5);
-
-        // Dice and raised black pips.
         diceModel = mb.createBox(
                 1.28f, 1.28f, 1.28f,
                 new Material(
@@ -208,20 +399,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         FloatAttribute.createShininess(20f)),
                 attrs);
 
-        ModelInstance dieA = new ModelInstance(diceModel, -1.55f, 1.06f, 0f);
-        ModelInstance dieB = new ModelInstance(diceModel,  1.55f, 1.06f, 0f);
-        dieA.transform.rotate(Vector3.Y, -9f);
-        dieB.transform.rotate(Vector3.Y, 12f);
-        models.add(dieA);
-        models.add(dieB);
-        addTopPips(-1.55f, 1.72f, 0f, 4);
-        addTopPips( 1.55f, 1.72f, 0f, 2);
-
         // Small gold center emblem/trim.
         accentModel = mb.createCylinder(
                 0.16f, 0.035f, 0.16f, 32,
                 wood(0.75f, 0.48f, 0.16f, 45f), attrs);
         models.add(new ModelInstance(accentModel, 0f, 0.68f, 0f));
+        rebuildGameObjects();
     }
 
     private Model createPointModel(Material material, long attrs, boolean unused) {
