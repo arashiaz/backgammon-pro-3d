@@ -62,11 +62,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private float lastX, lastY;
     private boolean dragging;
     private float cameraAzimuth = 0f;
-    private float cameraElevation = 48f;
-    private float cameraDistance = 21.5f;
+    private float cameraElevation = 58f;
+    private float cameraDistance = 23.5f;
 
     private final Vector3 cameraTarget = new Vector3(0f, 0.25f, 0f);
     private final Vector3 tmp = new Vector3();
+    private ModelInstance dieInstanceA, dieInstanceB;
+    private float diceRollTime;
 
     @Override
     public void show() {
@@ -144,6 +146,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         dice[1] = MathUtils.random(1, 6);
         dieUsed[0] = dieUsed[1] = false;
         diceRolled = true;
+        diceRollTime = 0.42f;
         selectedPoint = -1;
         clearMoveMarkers();
         status = lightTurn ? "Light: choose a checker" : "Dark: choose a checker";
@@ -157,10 +160,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         addStateStacks();
 
-        ModelInstance dieA = new ModelInstance(diceModel, -1.55f, 1.06f, 0f);
-        ModelInstance dieB = new ModelInstance(diceModel,  1.55f, 1.06f, 0f);
-        gameObjects.add(dieA); models.add(dieA);
-        gameObjects.add(dieB); models.add(dieB);
+        dieInstanceA = new ModelInstance(diceModel, -1.55f, 1.06f, 0f);
+        dieInstanceB = new ModelInstance(diceModel,  1.55f, 1.06f, 0f);
+        dieInstanceA.transform.rotate(Vector3.Y, -9f);
+        dieInstanceB.transform.rotate(Vector3.Y, 12f);
+        gameObjects.add(dieInstanceA); models.add(dieInstanceA);
+        gameObjects.add(dieInstanceB); models.add(dieInstanceB);
         if (dice[0] > 0) addTopPips(-1.55f, 1.72f, 0f, dice[0]);
         if (dice[1] > 0) addTopPips( 1.55f, 1.72f, 0f, dice[1]);
     }
@@ -448,16 +453,18 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private void addTopPips(float x, float y, float z, int number) {
         float d = 0.31f;
-        if (number == 1) {
-            addPip(x, y, z);
-        } else if (number == 2) {
+        if (number == 1 || number == 3 || number == 5) addPip(x, y, z);
+        if (number >= 2) {
             addPip(x - d, y, z - d);
             addPip(x + d, y, z + d);
-        } else if (number == 4) {
-            addPip(x - d, y, z - d);
-            addPip(x + d, y, z - d);
+        }
+        if (number >= 4) {
             addPip(x - d, y, z + d);
-            addPip(x + d, y, z + d);
+            addPip(x + d, y, z - d);
+        }
+        if (number == 6) {
+            addPip(x - d, y, z);
+            addPip(x + d, y, z);
         }
     }
 
@@ -487,6 +494,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public void render(float delta) {
         if (statusTimer > 0f) statusTimer -= delta;
+        if (diceRollTime > 0f) {
+            diceRollTime = Math.max(0f, diceRollTime - delta);
+            float spin = 900f * delta;
+            if (dieInstanceA != null) dieInstanceA.transform.rotate(Vector3.X, spin).rotate(Vector3.Y, spin * 0.65f);
+            if (dieInstanceB != null) dieInstanceB.transform.rotate(Vector3.X, -spin * 0.85f).rotate(Vector3.Z, spin);
+        }
 
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl.glClearColor(0.012f, 0.015f, 0.020f, 1f);
@@ -505,38 +518,42 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private void renderUi() {
         float w = Gdx.graphics.getWidth();
         float h = Gdx.graphics.getHeight();
-        rollButton.set(24f, 24f, Math.min(210f, w * 0.32f), 72f);
+        rollButton.set(24f, 24f, Math.min(260f, w * 0.30f), 84f);
 
         uiShape.begin(ShapeRenderer.ShapeType.Filled);
-        uiShape.setColor(0.025f, 0.035f, 0.050f, 0.92f);
-        uiShape.rect(0f, h - 92f, w, 92f);
-        uiShape.setColor(0.10f, 0.14f, 0.19f, 0.96f);
+        uiShape.setColor(0.018f, 0.023f, 0.032f, 0.96f);
+        uiShape.rect(0f, h - 112f, w, 112f);
+        uiShape.setColor(0.08f, 0.12f, 0.17f, 1f);
         uiShape.rect(rollButton.x, rollButton.y, rollButton.width, rollButton.height);
         uiShape.end();
 
         uiBatch.begin();
+        uiFont.getData().setScale(1.28f);
         uiFont.setColor(Color.WHITE);
         String turn = lightTurn ? "LIGHT" : "DARK";
-        String diceText = diceRolled ? (dice[0] + " + " + dice[1]) : "READY";
-        uiLayout.setText(uiFont, turn + "  •  " + diceText);
-        uiFont.draw(uiBatch, uiLayout, 24f, h - 34f);
+        String diceText = diceRolled ? (dice[0] + "  •  " + dice[1]) : "READY";
+        uiLayout.setText(uiFont, turn + "   " + diceText);
+        uiFont.draw(uiBatch, uiLayout, 28f, h - 38f);
 
+        uiFont.getData().setScale(1.0f);
+        uiFont.setColor(0.90f, 0.84f, 0.66f, 1f);
+        String score = "BAR  " + lightBar + " / " + darkBar + "     OFF  " + lightOff + " / " + darkOff;
+        uiFont.draw(uiBatch, score, 28f, h - 78f);
+
+        uiFont.getData().setScale(1.02f);
+        uiFont.setColor(Color.WHITE);
         String buttonText = diceRolled && !allDiceUsed() ? "USE DICE" : "ROLL DICE";
         uiLayout.setText(uiFont, buttonText);
         uiFont.draw(uiBatch, uiLayout,
                 rollButton.x + (rollButton.width - uiLayout.width) * 0.5f,
-                rollButton.y + 46f);
+                rollButton.y + 53f);
 
-        uiFont.getData().setScale(0.86f);
-        uiFont.setColor(0.90f, 0.84f, 0.66f, 1f);
-        String score = "BAR " + lightBar + " / " + darkBar + "    OFF " + lightOff + " / " + darkOff;
-        uiFont.draw(uiBatch, score, 24f, h - 66f);
-        uiFont.getData().setScale(1.12f);
-
+        uiFont.getData().setScale(0.98f);
         if (statusTimer > 0f || !diceRolled) {
-            uiFont.setColor(Color.WHITE);
-            uiFont.draw(uiBatch, status, rollButton.x + rollButton.width + 28f, rollButton.y + 46f);
+            uiFont.setColor(0.82f, 0.86f, 0.92f, 1f);
+            uiFont.draw(uiBatch, status, rollButton.x + rollButton.width + 28f, rollButton.y + 52f);
         }
+        uiFont.getData().setScale(1.12f);
         uiBatch.end();
     }
 
@@ -558,8 +575,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         float dx = x - lastX;
         float dy = y - lastY;
-        cameraAzimuth = MathUtils.clamp(cameraAzimuth - dx * 0.18f, -28f, 28f);
-        cameraElevation = MathUtils.clamp(cameraElevation - dy * 0.12f, 35f, 64f);
+        cameraAzimuth = MathUtils.clamp(cameraAzimuth - dx * 0.13f, -22f, 22f);
+        cameraElevation = MathUtils.clamp(cameraElevation - dy * 0.09f, 48f, 68f);
         updateCamera();
         lastX = x;
         lastY = y;
