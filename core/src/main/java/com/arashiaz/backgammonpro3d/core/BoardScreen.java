@@ -593,7 +593,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 lastDiceLiftA = 0f;
                 lastDiceLiftB = 0f;
                 rebuildGameObjects();
-                if (Gdx.input.isPeripheralAvailable(Input.Peripheral.Vibrator)) Gdx.input.vibrate(35);
+                if (Gdx.input.isPeripheralAvailable(Input.Peripheral.Vibrator)) {
+                    try {
+                        Gdx.input.vibrate(35);
+                    } catch (SecurityException ignored) {
+                        // Haptics are optional and must never crash the game.
+                    }
+                }
             }
         }
         if (moveAnimating && movingPiece != null) {
