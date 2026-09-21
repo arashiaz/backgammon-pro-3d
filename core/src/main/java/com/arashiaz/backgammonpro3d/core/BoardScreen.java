@@ -68,8 +68,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private float lastX, lastY;
     private boolean dragging;
     private float cameraAzimuth = 0f;
-    private float cameraElevation = 61f;
-    private float cameraDistance = 19.0f;
+    private float cameraElevation = 68f;
+    private float cameraDistance = 21.5f;
 
     private final Vector3 cameraTarget = new Vector3(0f, 0.25f, 0f);
     private final Vector3 tmp = new Vector3();
@@ -96,9 +96,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         resetGameState();
 
         environment.set(new ColorAttribute(
-                ColorAttribute.AmbientLight, 0.30f, 0.31f, 0.34f, 1f));
+                ColorAttribute.AmbientLight, 0.46f, 0.45f, 0.43f, 1f));
         environment.add(new DirectionalLight().set(
-                1.0f, 0.91f, 0.78f, -0.55f, -1.0f, -0.35f));
+                0.92f, 0.86f, 0.74f, -0.55f, -1.0f, -0.35f));
         environment.add(new DirectionalLight().set(
                 0.28f, 0.34f, 0.48f, 0.55f, -0.45f, 0.65f));
         // A focused warm key and a restrained cool rim give the wood and
@@ -431,32 +431,32 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
                 21.4f, 0.72f, 10.7f,
-                wood(0.105f, 0.030f, 0.012f, 24f), attrs);
+                wood(0.16f, 0.055f, 0.028f, 28f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
         playingSurfaceModel = mb.createBox(
                 18.35f, 0.34f, 9.95f,
-                wood(0.20f, 0.055f, 0.016f, 22f), attrs);
+                wood(0.38f, 0.20f, 0.11f, 24f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
                 17.55f, 0.18f, 9.05f,
-                surface(0.255f, 0.095f, 0.026f), attrs);
+                surface(0.42f, 0.27f, 0.17f), attrs);
         models.add(new ModelInstance(felt, 0f, 0.27f, 0f));
 
         railModel = mb.createBox(
                 18.05f, 0.10f, 9.55f,
-                wood(0.40f, 0.12f, 0.026f, 36f), attrs);
+                wood(0.28f, 0.12f, 0.070f, 38f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
         Model innerMat = mb.createBox(
                 17.55f, 0.08f, 9.05f,
-                surface(0.235f, 0.078f, 0.020f), attrs);
+                surface(0.36f, 0.21f, 0.13f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
-        Material innerRailMat = wood(0.36f, 0.105f, 0.024f, 46f);
+        Material innerRailMat = wood(0.26f, 0.10f, 0.055f, 48f);
         Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
         Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
         models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
@@ -487,11 +487,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Real flat triangular points, not cones.
         darkPointModel = createPointModel(
-                wood(0.085f, 0.018f, 0.012f, 28f),
-                wood(0.12f, 0.028f, 0.015f, 36f), attrs);
+                wood(0.24f, 0.055f, 0.075f, 34f),
+                wood(0.34f, 0.095f, 0.12f, 42f), attrs);
         lightPointModel = createPointModel(
-                wood(0.72f, 0.43f, 0.15f, 32f),
-                wood(0.86f, 0.60f, 0.25f, 42f), attrs);
+                wood(0.78f, 0.66f, 0.47f, 34f),
+                wood(0.91f, 0.80f, 0.60f, 44f), attrs);
 
         float[] xs = XS;
 
@@ -513,32 +513,32 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.028f, 0.026f, 0.034f, 1f),
-                        ColorAttribute.createSpecular(0.46f, 0.46f, 0.52f, 1f),
-                        FloatAttribute.createShininess(68f)),
+                        ColorAttribute.createDiffuse(0.018f, 0.035f, 0.095f, 1f),
+                        ColorAttribute.createSpecular(0.34f, 0.42f, 0.70f, 1f),
+                        FloatAttribute.createShininess(74f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.070f, 0.062f, 0.085f, 1f),
-                        ColorAttribute.createSpecular(0.34f, 0.34f, 0.42f, 1f),
-                        FloatAttribute.createShininess(82f)),
+                        ColorAttribute.createDiffuse(0.045f, 0.075f, 0.16f, 1f),
+                        ColorAttribute.createSpecular(0.30f, 0.42f, 0.70f, 1f),
+                        FloatAttribute.createShininess(88f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.050f, 0.044f, 0.058f, 1f),
-                        ColorAttribute.createSpecular(0.56f, 0.54f, 0.62f, 1f),
-                        FloatAttribute.createShininess(92f)),
+                        ColorAttribute.createDiffuse(0.075f, 0.11f, 0.20f, 1f),
+                        ColorAttribute.createSpecular(0.44f, 0.54f, 0.82f, 1f),
+                        FloatAttribute.createShininess(96f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.90f, 0.80f, 0.60f, 1f),
-                        ColorAttribute.createSpecular(0.68f, 0.60f, 0.48f, 1f),
-                        FloatAttribute.createShininess(60f)),
+                        ColorAttribute.createDiffuse(0.88f, 0.82f, 0.66f, 1f),
+                        ColorAttribute.createSpecular(0.76f, 0.70f, 0.54f, 1f),
+                        FloatAttribute.createShininess(64f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.72f, 0.57f, 0.34f, 1f),
-                        ColorAttribute.createSpecular(0.58f, 0.46f, 0.28f, 1f),
-                        FloatAttribute.createShininess(74f)),
+                        ColorAttribute.createDiffuse(0.72f, 0.64f, 0.47f, 1f),
+                        ColorAttribute.createSpecular(0.62f, 0.56f, 0.42f, 1f),
+                        FloatAttribute.createShininess(78f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.78f, 0.64f, 0.40f, 1f),
-                        ColorAttribute.createSpecular(0.76f, 0.64f, 0.40f, 1f),
-                        FloatAttribute.createShininess(88f)),
+                        ColorAttribute.createDiffuse(0.80f, 0.73f, 0.55f, 1f),
+                        ColorAttribute.createSpecular(0.78f, 0.70f, 0.52f, 1f),
+                        FloatAttribute.createShininess(92f)),
                 attrs);
 
         diceModel = createBeveledDieModel(attrs);
@@ -834,7 +834,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         camera.lookAt(cameraTarget);
         camera.up.set(Vector3.Y);
-        camera.fieldOfView = 34f;
+        camera.fieldOfView = 36f;
         camera.near = 0.1f;
         camera.far = 100f;
         camera.update();
@@ -898,7 +898,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
 
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        Gdx.gl.glClearColor(0.008f, 0.010f, 0.014f, 1f);
+        Gdx.gl.glClearColor(0.020f, 0.018f, 0.016f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
         Gdx.gl.glDepthFunc(GL20.GL_LEQUAL);
@@ -915,37 +915,40 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private void renderUi() {
         float w = Gdx.graphics.getWidth();
         float h = Gdx.graphics.getHeight();
-        rollButton.set(24f, 24f, Math.min(260f, w * 0.30f), 84f);
+        float top = Math.min(94f, h * 0.14f);
 
         uiShape.begin(ShapeRenderer.ShapeType.Filled);
-        uiShape.setColor(0.010f, 0.014f, 0.021f, 0.94f);
-        uiShape.rect(0f, h - 112f, w, 112f);
-        uiShape.setColor(0.56f, 0.36f, 0.14f, 0.75f);
-        uiShape.rect(0f, h - 114f, w, 2f);
-        uiShape.setColor(0.10f, 0.12f, 0.16f, 0.92f);
-        uiShape.rect(20f, h - 94f, Math.min(230f, w * 0.34f), 54f);
+        uiShape.setColor(0.045f, 0.035f, 0.030f, 0.97f);
+        uiShape.rect(0f, h - top, w, top);
+        uiShape.setColor(0.58f, 0.40f, 0.20f, 0.90f);
+        uiShape.rect(0f, h - top, w, 3f);
+        float centerW = Math.min(760f, w * 0.56f);
+        float left = (w - centerW) * 0.5f;
+        uiShape.setColor(0.22f, 0.16f, 0.10f, 0.96f);
+        uiShape.rect(left, h - top + 12f, centerW, top - 24f);
         uiShape.end();
 
         uiBatch.begin();
-        uiFont.getData().setScale(1.28f);
-        uiFont.setColor(Color.WHITE);
-        String turn = lightTurn ? "LIGHT" : "DARK";
-        String diceText = diceRolled
-                ? (diceRollTime > 0f ? "ROLLING" : dice[0] + "  •  " + dice[1])
-                : "READY";
-        uiLayout.setText(uiFont, turn + "   " + diceText);
-        uiFont.draw(uiBatch, uiLayout, 28f, h - 38f);
-
-        uiFont.getData().setScale(1.0f);
-        uiFont.setColor(0.90f, 0.84f, 0.66f, 1f);
+        uiFont.setColor(0.91f, 0.76f, 0.48f, 1f);
+        uiFont.getData().setScale(1.30f);
+        uiFont.draw(uiBatch, "BACKGAMMON", 24f, h - 30f);
+        uiFont.getData().setScale(1.02f);
+        uiFont.setColor(0.96f, 0.92f, 0.82f, 1f);
+        uiFont.draw(uiBatch, "YOU", left + 28f, h - 34f);
+        uiFont.draw(uiBatch, "CPU", left + centerW - 72f, h - 34f);
+        uiFont.getData().setScale(1.22f);
+        uiFont.setColor(0.98f, 0.90f, 0.68f, 1f);
+        String diceText = diceRolled ? (diceRollTime > 0f ? "ROLLING" : dice[0] + "   " + dice[1]) : "—";
+        uiLayout.setText(uiFont, diceText);
+        uiFont.draw(uiBatch, uiLayout, left + centerW * 0.5f - uiLayout.width * 0.5f, h - 32f);
+        uiFont.getData().setScale(0.92f);
+        uiFont.setColor(0.76f, 0.70f, 0.60f, 1f);
         String score = "BAR  " + lightBar + " / " + darkBar + "     OFF  " + lightOff + " / " + darkOff;
-        uiFont.draw(uiBatch, score, 28f, h - 78f);
-
-        uiFont.getData().setScale(0.98f);
+        uiFont.draw(uiBatch, score, 24f, h - top - 16f);
         if (statusTimer > 0f || !diceRolled) {
-            uiFont.setColor(0.82f, 0.86f, 0.92f, 1f);
+            uiFont.setColor(0.78f, 0.80f, 0.84f, 1f);
             String hint = !diceRolled ? "Tap or throw the dice" : status;
-            uiFont.draw(uiBatch, hint, 28f, 42f);
+            uiFont.draw(uiBatch, hint, 24f, 28f);
         }
         uiFont.getData().setScale(1.12f);
         uiBatch.end();
