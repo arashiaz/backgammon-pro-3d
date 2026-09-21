@@ -202,8 +202,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // only after the final face is settled, so they never float while the
         // cube spins. The final face is rebuilt atomically when the animation ends.
         if (diceRollTime <= 0f) {
-            if (dice[0] > 0) addTopPips(-1.55f, 1.72f, 0f, dice[0]);
-            if (dice[1] > 0) addTopPips( 1.55f, 1.72f, 0f, dice[1]);
+            if (dice[0] > 0) addTopPips(-1.55f, 1.668f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 1.55f, 1.668f, 0f, dice[1]);
         }
     }
 
@@ -491,7 +491,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 attrs);
 
         dieDotModel = mb.createCylinder(
-                0.18f, 0.035f, 0.18f, 24,
+                0.155f, 0.026f, 0.155f, 32,
                 new Material(
                         ColorAttribute.createDiffuse(0.035f, 0.032f, 0.028f, 1f),
                         ColorAttribute.createSpecular(0.12f, 0.12f, 0.12f, 1f),
@@ -512,9 +512,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         final int segments = 64;
         final float radius = 0.50f;
-        final float bevelRadius = 0.055f;
-        final float half = 0.21f;
-        final float bevelY = 0.26f;
+        final float bevelRadius = 0.075f;
+        final float half = 0.205f;
+        final float bevelY = 0.065f;
 
         for (int i = 0; i < segments; i++) {
             float a0 = MathUtils.PI2 * i / segments;
@@ -556,11 +556,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         mb.begin();
         MeshPartBuilder p = mb.part("point", GL20.GL_TRIANGLES, attrs, material);
 
-        final float w = 0.47f;
+        final float w = 0.50f;
         final float y0 = 0f;
-        final float y1 = 0.12f;
-        final float zBase = 2.02f;
-        final float zTip = -1.92f;
+        final float y1 = 0.075f;
+        final float zBase = 1.98f;
+        final float zTip = -1.72f;
 
         Vector3 a0 = new Vector3(-w, y0, zBase);
         Vector3 b0 = new Vector3( w, y0, zBase);
