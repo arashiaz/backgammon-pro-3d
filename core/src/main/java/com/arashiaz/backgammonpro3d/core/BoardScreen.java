@@ -49,10 +49,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private void addChecker(Model model,float x,float z){models.add(new ModelInstance(model,x,0.48f,z));}
     @Override public void render(float delta){Gdx.gl.glViewport(0,0,Gdx.graphics.getWidth(),Gdx.graphics.getHeight()); Gdx.gl.glClearColor(0.035f,0.045f,0.06f,1); Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT|GL20.GL_DEPTH_BUFFER_BIT); camera.update(); batch.begin(camera); for(ModelInstance m:models) batch.render(m,environment); batch.end();}
     @Override public boolean touchDown(int x,int y,int p,int b){lastX=x;lastY=y;return true;}
-    @Override public boolean touchDragged(int x,int y,int p){float dx=x-lastX,dy=y-lastY;camera.position.rotateAround(Vector3.Zero,Vector3.Y,-dx*0.16f);camera.position.y=MathUtils.clamp(camera.position.y-dy*0.035f,11f,24f);camera.lookAt(0,0,0);lastX=x;lastY=y;return true;}
+    @Override public boolean touchDragged(int x,int y,int p){float dx=x-lastX,dy=y-lastY;camera.rotateAround(Vector3.Zero,Vector3.Y,-dx*0.16f);camera.position.y=MathUtils.clamp(camera.position.y-dy*0.035f,11f,24f);camera.lookAt(0,0,0);lastX=x;lastY=y;return true;}
     @Override public boolean touchUp(int x,int y,int p,int b){return true;}
     @Override public boolean touchCancelled(int x,int y,int p,int b){return true;}
     @Override public boolean mouseMoved(int x,int y){return false;}
+    @Override public boolean keyTyped(char character){return false;}
     @Override public boolean scrolled(float amountX,float amountY){camera.position.scl(1f+amountY*0.05f);camera.position.y=MathUtils.clamp(camera.position.y,11f,28f);camera.lookAt(0,0,0);return true;}
     @Override public boolean keyDown(int k){return false;} @Override public boolean keyUp(int k){return false;}
     @Override public void resize(int w,int h){camera.viewportWidth=w;camera.viewportHeight=h;camera.update();}
