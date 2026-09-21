@@ -432,8 +432,23 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         Model innerMat = mb.createBox(
                 16.95f, 0.08f, 9.05f,
-                surface(0.46f, 0.23f, 0.075f), attrs);
+                surface(0.40f, 0.18f, 0.050f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
+
+        // Thin inner rails create a layered, furniture-grade edge around the felt.
+        Material innerRailMat = wood(0.50f, 0.19f, 0.045f, 34f);
+        Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
+        Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
+        models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
+        models.add(new ModelInstance(innerRailX, 0f, 0.49f,  4.48f));
+        models.add(new ModelInstance(innerRailZ, -8.34f, 0.49f, 0f));
+        models.add(new ModelInstance(innerRailZ,  8.34f, 0.49f, 0f));
+
+        // Subtle central divider shoulders, keeping the bar visually integrated.
+        Model barShoulder = mb.createBox(
+                0.92f, 0.07f, 9.02f,
+                wood(0.34f, 0.12f, 0.030f, 24f), attrs);
+        models.add(new ModelInstance(barShoulder, 0f, 0.54f, 0f));
 
         // Central bar with a subtle raised center strip.
         barModel = mb.createBox(
@@ -609,11 +624,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         mb.begin();
         MeshPartBuilder p = mb.part("point", GL20.GL_TRIANGLES, attrs, material);
 
-        final float w = 0.50f;
+        final float w = 0.485f;
         final float y0 = 0f;
-        final float y1 = 0.075f;
-        final float zBase = 1.98f;
-        final float zTip = -1.72f;
+        final float y1 = 0.065f;
+        final float zBase = 1.93f;
+        final float zTip = -1.67f;
 
         Vector3 a0 = new Vector3(-w, y0, zBase);
         Vector3 b0 = new Vector3( w, y0, zBase);
