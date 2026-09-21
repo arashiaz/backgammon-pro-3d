@@ -64,6 +64,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model accentModel;
     private Model diceTrayModel, screwModel;
     private Model diceEdgeModel;
+    private Texture woodTexture;
 
     private float lastX, lastY;
     private boolean dragging;
@@ -110,6 +111,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         environment.add(new DirectionalLight().set(
                 0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
 
+        woodTexture = createWoodTexture(256);
         buildBoard();
         updateCamera();
     }
@@ -411,6 +413,40 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         return m;
     }
 
+    private Material woodTextured(float r, float g, float b, float shine) {
+        Material m = new Material(
+                TextureAttribute.createDiffuse(woodTexture),
+                ColorAttribute.createDiffuse(r, g, b, 1f),
+                ColorAttribute.createSpecular(
+                        Math.min(1f, r + 0.14f),
+                        Math.min(1f, g + 0.14f),
+                        Math.min(1f, b + 0.14f), 1f),
+                FloatAttribute.createShininess(shine));
+        return m;
+    }
+
+    private Texture createWoodTexture(int size) {
+        Pixmap pix = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        for (int y = 0; y < size; y++) {
+            float grainLine = MathUtils.sin(y * 0.34f
+                    + MathUtils.sin(y * 0.026f) * 3.5f);
+            for (int x = 0; x < size; x++) {
+                float n = MathUtils.sin(x * 0.071f + y * 0.017f)
+                        + MathUtils.sin(x * 0.19f + y * 0.041f) * 0.35f;
+                float v = MathUtils.clamp(0.52f + grainLine * 0.13f + n * 0.055f, 0.08f, 0.92f);
+                float r = MathUtils.clamp(0.30f + v * 0.28f, 0f, 1f);
+                float g = MathUtils.clamp(0.12f + v * 0.16f, 0f, 1f);
+                float b = MathUtils.clamp(0.045f + v * 0.095f, 0f, 1f);
+                pix.drawPixel(x, y, Color.rgba8888(r, g, b, 1f));
+            }
+        }
+        Texture texture = new Texture(pix, true);
+        texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
+        texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        pix.dispose();
+        return texture;
+    }
+
     private Material surface(float r, float g, float b) {
         Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
         m.set(ColorAttribute.createSpecular(0.12f, 0.10f, 0.08f, 1f));
@@ -419,7 +455,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void buildBoard() {
-        final long attrs = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
+        final long attrs = VertexAttributes.Usage.Position
+                | VertexAttributes.Usage.Normal
+                | VertexAttributes.Usage.TextureCoordinates;
 
         // A dark furniture-like floor grounds the board in the scene instead
         // of leaving it floating against a flat black background.
@@ -431,12 +469,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
                 21.4f, 0.72f, 10.7f,
-                wood(0.16f, 0.055f, 0.028f, 28f), attrs);
+                woodTextured(0.72f, 0.36f, 0.17f, 28f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
         playingSurfaceModel = mb.createBox(
                 18.35f, 0.34f, 9.95f,
-                wood(0.38f, 0.20f, 0.11f, 24f), attrs);
+                woodTextured(0.88f, 0.53f, 0.28f, 24f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
 
         // Warm cloth/felt inset.
@@ -447,7 +485,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         railModel = mb.createBox(
                 18.05f, 0.10f, 9.55f,
-                wood(0.28f, 0.12f, 0.070f, 38f), attrs);
+                woodTextured(0.66f, 0.30f, 0.12f, 38f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
         Model innerMat = mb.createBox(
@@ -456,7 +494,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
-        Material innerRailMat = wood(0.26f, 0.10f, 0.055f, 48f);
+        Material innerRailMat = woodTextured(0.58f, 0.25f, 0.095f, 48f);
         Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
         Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
         models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
@@ -487,11 +525,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Real flat triangular points, not cones.
         darkPointModel = createPointModel(
-                wood(0.24f, 0.055f, 0.075f, 34f),
-                wood(0.34f, 0.095f, 0.12f, 42f), attrs);
+                woodTextured(0.56f, 0.18f, 0.23f, 34f),
+                woodTextured(0.68f, 0.28f, 0.34f, 42f), attrs);
         lightPointModel = createPointModel(
-                wood(0.78f, 0.66f, 0.47f, 34f),
-                wood(0.91f, 0.80f, 0.60f, 44f), attrs);
+                woodTextured(0.88f, 0.70f, 0.47f, 34f),
+                woodTextured(0.96f, 0.83f, 0.62f, 44f), attrs);
 
         float[] xs = XS;
 
@@ -582,7 +620,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // They remain part of the board shell, so the playfield keeps its clean silhouette.
         sideTrayModel = mb.createBox(
                 1.45f, 0.16f, 9.00f,
-                wood(0.095f, 0.028f, 0.012f, 24f), attrs);
+                woodTextured(0.34f, 0.12f, 0.055f, 24f), attrs);
         sideTrayInsetModel = mb.createBox(
                 1.12f, 0.07f, 8.55f,
                 surface(0.055f, 0.018f, 0.010f), attrs);
@@ -592,7 +630,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(sideTrayInsetModel,  9.72f, 0.31f, 0f));
 
         // Thin walnut lips make the wells read as routed recesses.
-        Material trayLip = wood(0.30f, 0.080f, 0.018f, 38f);
+        Material trayLip = woodTextured(0.62f, 0.28f, 0.095f, 38f);
         Model trayLipX = mb.createBox(0.08f, 0.075f, 8.72f, trayLip, attrs);
         models.add(new ModelInstance(trayLipX, -9.06f, 0.39f, 0f));
         models.add(new ModelInstance(trayLipX, -10.38f, 0.39f, 0f));
@@ -602,7 +640,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Decorative medallions on each half of the board.
         medallionModel = mb.createCylinder(
                 0.43f, 0.035f, 0.43f, 48,
-                wood(0.30f, 0.095f, 0.022f, 48f), attrs);
+                woodTextured(0.58f, 0.25f, 0.085f, 48f), attrs);
         medallionRingModel = mb.createCylinder(
                 0.31f, 0.045f, 0.31f, 48,
                 wood(0.72f, 0.46f, 0.15f, 58f), attrs);
@@ -1046,6 +1084,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         uiShape.dispose();
         uiBatch.dispose();
         uiFont.dispose();
+        if (woodTexture != null) woodTexture.dispose();
         if (floorModel != null) floorModel.dispose();
         if (baseModel != null) baseModel.dispose();
         if (playingSurfaceModel != null) playingSurfaceModel.dispose();
