@@ -817,11 +817,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Explicit UVs on the visible face. V runs from the wide wooden
         // base to the point, so the grain follows the long axis naturally.
         VertexInfo va = new VertexInfo().set(
-                a1, Vector3.Y, null, 0.0f, 0.0f);
+                a1, Vector3.Y, null, new Vector2(0.0f, 0.0f));
         VertexInfo vb = new VertexInfo().set(
-                b1, Vector3.Y, null, 1.0f, 0.0f);
+                b1, Vector3.Y, null, new Vector2(1.0f, 0.0f));
         VertexInfo vc = new VertexInfo().set(
-                c1, Vector3.Y, null, 0.5f, 1.0f);
+                c1, Vector3.Y, null, new Vector2(0.5f, 1.0f));
         p.triangle(va, vb, vc);
 
         // Keep the side walls closed; they do not need visible grain mapping.
@@ -844,11 +844,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Vector3 db = new Vector3( dw, dy, dzBase);
         Vector3 dc = new Vector3(0f, dy, dzTip);
         VertexInfo dva = new VertexInfo().set(
-                da, Vector3.Y, null, 0.05f, 0.05f);
+                da, Vector3.Y, null, new Vector2(0.05f, 0.05f));
         VertexInfo dvb = new VertexInfo().set(
-                db, Vector3.Y, null, 0.95f, 0.05f);
+                db, Vector3.Y, null, new Vector2(0.95f, 0.05f));
         VertexInfo dvc = new VertexInfo().set(
-                dc, Vector3.Y, null, 0.5f, 0.95f);
+                dc, Vector3.Y, null, new Vector2(0.5f, 0.95f));
         detail.triangle(dva, dvb, dvc);
 
         return mb.end();
