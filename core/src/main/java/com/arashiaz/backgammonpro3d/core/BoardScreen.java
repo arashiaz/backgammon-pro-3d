@@ -62,6 +62,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model diceModel, dieDotModel;
     private Model accentModel;
     private Model diceTrayModel, screwModel;
+    private Model diceEdgeModel;
 
     private float lastX, lastY;
     private boolean dragging;
@@ -483,14 +484,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         FloatAttribute.createShininess(48f)),
                 attrs);
 
-        diceModel = mb.createBox(
-                1.22f, 1.22f, 1.22f,
-                new Material(
-                        ColorAttribute.createDiffuse(0.94f, 0.92f, 0.84f, 1f),
-                        ColorAttribute.createSpecular(0.72f, 0.68f, 0.58f, 1f),
-                        FloatAttribute.createShininess(70f)),
-                attrs);
-
+        diceModel = createBeveledDieModel(attrs);
         dieDotModel = mb.createCylinder(
                 0.145f, 0.022f, 0.145f, 32,
                 new Material(
@@ -527,6 +521,59 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(screwModel,  8.55f, 0.40f,  4.78f));
 
         rebuildGameObjects();
+    }
+
+    private Model createBeveledDieModel(long attrs) {
+        mb.begin();
+        Material dieMaterial = new Material(
+                ColorAttribute.createDiffuse(0.94f, 0.92f, 0.84f, 1f),
+                ColorAttribute.createSpecular(0.72f, 0.68f, 0.58f, 1f),
+                FloatAttribute.createShininess(70f));
+        MeshPartBuilder p = mb.part("die", GL20.GL_TRIANGLES, attrs, dieMaterial);
+
+        final float h = 0.61f;
+        final float b = 0.09f;
+        final float core = h - b;
+
+        Vector3[] v = new Vector3[8];
+        v[0]=new Vector3(-core,-h,-core); v[1]=new Vector3(core,-h,-core);
+        v[2]=new Vector3(core,-h,core);   v[3]=new Vector3(-core,-h,core);
+        v[4]=new Vector3(-core,h, -core); v[5]=new Vector3(core,h,-core);
+        v[6]=new Vector3(core,h,core);    v[7]=new Vector3(-core,h,core);
+
+        // Rounded-looking chamfered cube: inset core faces plus connecting bevel bands.
+        p.quad(v[4],v[5],v[6],v[7]);
+        p.quad(v[0],v[3],v[2],v[1]);
+        p.quad(v[0],v[1],v[5],v[4]);
+        p.quad(v[1],v[2],v[6],v[5]);
+        p.quad(v[2],v[3],v[7],v[6]);
+        p.quad(v[3],v[0],v[4],v[7]);
+
+        float outer=h, inner=core;
+        Vector3[][] rings = {
+            {new Vector3(-outer,inner,-inner),new Vector3(outer,inner,-inner),
+             new Vector3(outer,inner,inner),new Vector3(-outer,inner,inner)},
+            {new Vector3(-inner,outer,-inner),new Vector3(inner,outer,-inner),
+             new Vector3(inner,outer,inner),new Vector3(-inner,outer,inner)}
+        };
+        // Subtle bevel strips on the six edges.
+        p.quad(new Vector3(-outer,inner,-inner),new Vector3(outer,inner,-inner),
+               new Vector3(outer,outer,-inner),new Vector3(-outer,outer,-inner));
+        p.quad(new Vector3(outer,inner,-inner),new Vector3(outer,inner,inner),
+               new Vector3(outer,outer,inner),new Vector3(outer,outer,-inner));
+        p.quad(new Vector3(outer,inner,inner),new Vector3(-outer,inner,inner),
+               new Vector3(-outer,outer,inner),new Vector3(outer,outer,inner));
+        p.quad(new Vector3(-outer,inner,inner),new Vector3(-outer,inner,-inner),
+               new Vector3(-outer,outer,-inner),new Vector3(-outer,outer,inner));
+        p.quad(new Vector3(-outer,-inner,-inner),new Vector3(outer,-inner,-inner),
+               new Vector3(outer,-outer,-inner),new Vector3(-outer,-outer,-inner));
+        p.quad(new Vector3(outer,-inner,-inner),new Vector3(outer,-inner,inner),
+               new Vector3(outer,-outer,inner),new Vector3(outer,-outer,-inner));
+        p.quad(new Vector3(outer,-inner,inner),new Vector3(-outer,-inner,inner),
+               new Vector3(-outer,-outer,inner),new Vector3(outer,-outer,inner));
+        p.quad(new Vector3(-outer,-inner,inner),new Vector3(-outer,-inner,-inner),
+               new Vector3(-outer,-outer,-inner),new Vector3(-outer,-outer,inner));
+        return mb.end();
     }
 
     private Model createBeveledCheckerModel(Material material, long attrs) {
@@ -854,6 +901,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (dieDotModel != null) dieDotModel.dispose();
         if (accentModel != null) accentModel.dispose();
         if (diceTrayModel != null) diceTrayModel.dispose();
+        if (diceEdgeModel != null) diceEdgeModel.dispose();
         if (screwModel != null) screwModel.dispose();
     }
 }
