@@ -98,6 +98,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 1.0f, 0.91f, 0.78f, -0.55f, -1.0f, -0.35f));
         environment.add(new DirectionalLight().set(
                 0.28f, 0.34f, 0.48f, 0.55f, -0.45f, 0.65f));
+        // A focused warm key and a restrained cool rim give the wood and
+        // checker bevels readable depth without requiring expensive shadows.
+        environment.add(new DirectionalLight().set(
+                0.42f, 0.30f, 0.18f, -0.25f, -0.75f, 0.82f));
 
         buildBoard();
         updateCamera();
@@ -692,6 +696,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         camera.lookAt(cameraTarget);
         camera.up.set(Vector3.Y);
+        camera.fieldOfView = 38f;
         camera.near = 0.1f;
         camera.far = 100f;
         camera.update();
@@ -750,6 +755,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Gdx.gl.glClearColor(0.012f, 0.015f, 0.020f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+        Gdx.gl.glDepthFunc(GL20.GL_LEQUAL);
 
         camera.update();
         batch.begin(camera);
