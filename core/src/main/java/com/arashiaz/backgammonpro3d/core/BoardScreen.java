@@ -56,7 +56,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private float statusTimer;
     private final ModelBuilder mb = new ModelBuilder();
 
-    private Model baseModel, playingSurfaceModel, railModel, barModel;
+    private Model floorModel, baseModel, playingSurfaceModel, railModel, barModel;
     private Model darkPointModel, lightPointModel;
     private Model darkChecker, lightChecker;
     private Model diceModel, dieDotModel;
@@ -95,7 +95,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         resetGameState();
 
         environment.set(new ColorAttribute(
-                ColorAttribute.AmbientLight, 0.42f, 0.43f, 0.46f, 1f));
+                ColorAttribute.AmbientLight, 0.30f, 0.31f, 0.34f, 1f));
         environment.add(new DirectionalLight().set(
                 1.0f, 0.91f, 0.78f, -0.55f, -1.0f, -0.35f));
         environment.add(new DirectionalLight().set(
@@ -103,7 +103,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // A focused warm key and a restrained cool rim give the wood and
         // checker bevels readable depth without requiring expensive shadows.
         environment.add(new DirectionalLight().set(
-                0.42f, 0.30f, 0.18f, -0.25f, -0.75f, 0.82f));
+                0.50f, 0.34f, 0.18f, -0.25f, -0.75f, 0.82f));
+        // A soft frontal fill keeps the dark checkers readable while preserving
+        // the stronger warm key on the wood.
+        environment.add(new DirectionalLight().set(
+                0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
 
         buildBoard();
         updateCamera();
@@ -415,6 +419,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private void buildBoard() {
         final long attrs = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
+
+        // A dark furniture-like floor grounds the board in the scene instead
+        // of leaving it floating against a flat black background.
+        floorModel = mb.createBox(
+                28.0f, 0.10f, 19.0f,
+                surface(0.018f, 0.022f, 0.028f), attrs);
+        models.add(new ModelInstance(floorModel, 0f, -0.84f, 0f));
 
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
@@ -983,6 +994,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         uiShape.dispose();
         uiBatch.dispose();
         uiFont.dispose();
+        if (floorModel != null) floorModel.dispose();
         if (baseModel != null) baseModel.dispose();
         if (playingSurfaceModel != null) playingSurfaceModel.dispose();
         if (railModel != null) railModel.dispose();
