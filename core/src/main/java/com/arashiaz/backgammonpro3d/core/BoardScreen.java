@@ -449,10 +449,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         + MathUtils.sin(v * 9.0f) * 2.2f) * 0.12f;
 
                 // A few stretched knots break the perfectly procedural look.
-                float knot1 = MathUtils.exp(
+                float knot1 = Math.exp(
                         -(((u - 0.23f) * (u - 0.23f)) / 0.0035f
                         + ((v - 0.34f) * (v - 0.34f)) / 0.030f)) * 0.18f;
-                float knot2 = MathUtils.exp(
+                float knot2 = Math.exp(
                         -(((u - 0.74f) * (u - 0.74f)) / 0.0045f
                         + ((v - 0.69f) * (v - 0.69f)) / 0.040f)) * 0.14f;
 
