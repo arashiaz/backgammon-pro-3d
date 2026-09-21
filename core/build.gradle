@@ -1,7 +1,7 @@
 plugins { id 'java-library' }
 
 dependencies {
-    api 'com.badlogicgames.gdx:gdx:1.13.5'
+    api 'com.badlogicgames.gdx:gdx:1.13.1'
 }
 
 java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }
