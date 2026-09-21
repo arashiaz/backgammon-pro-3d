@@ -69,6 +69,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private final Vector3 tmp = new Vector3();
     private ModelInstance dieInstanceA, dieInstanceB;
     private float diceRollTime;
+    private ModelInstance movingPiece;
+    private final Vector3 moveStart = new Vector3();
+    private final Vector3 moveEnd = new Vector3();
+    private float moveTime;
+    private static final float MOVE_DURATION = 0.34f;
+    private boolean moveAnimating;
 
     @Override
     public void show() {
@@ -193,6 +199,63 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
     }
 
+    private ModelInstance findTopChecker(int point) {
+        int count = Math.abs(points[point]);
+        if (count <= 0) return null;
+        int col = point < 12 ? point : 23 - point;
+        float x = XS[col];
+        float z = point < 12 ? -3.30f + (count - 1) * 0.43f : 3.30f - (count - 1) * 0.43f;
+        Model expected = points[point] > 0 ? lightChecker : darkChecker;
+        for (ModelInstance instance : gameObjects) {
+            if (instance.model != expected) continue;
+            instance.transform.getTranslation(tmp);
+            if (Math.abs(tmp.x - x) < 0.08f && Math.abs(tmp.z - z) < 0.08f) return instance;
+        }
+        return null;
+    }
+
+    private Vector3 pointPosition(int point, int stackIndex) {
+        int col = point < 12 ? point : 23 - point;
+        float x = XS[col];
+        float z = point < 12 ? -3.30f + stackIndex * 0.43f : 3.30f - stackIndex * 0.43f;
+        return new Vector3(x, 0.78f + stackIndex * 0.425f, z);
+    }
+
+    private void startMoveAnimation(ModelInstance piece, int from, int destination, int sourceStackIndex) {
+        if (piece == null) {
+            rebuildGameObjects();
+            finishMoveState();
+            return;
+        }
+        moveStart.set(pointPosition(from, sourceStackIndex));
+        int destinationCountBefore = Math.abs(points[destination]);
+        int destinationStackIndex = (points[destination] != 0 && ((points[destination] > 0) == lightTurn))
+                ? destinationCountBefore - 1 : destinationCountBefore;
+        moveEnd.set(pointPosition(destination, Math.max(0, destinationStackIndex)));
+        moveEnd.y = 0.82f + Math.max(0, destinationStackIndex) * 0.425f;
+
+        models.removeValue(piece, true);
+        gameObjects.removeValue(piece, true);
+        movingPiece = piece;
+        movingPiece.transform.setToTranslation(moveStart);
+        models.add(movingPiece);
+        moveTime = 0f;
+        moveAnimating = true;
+    }
+
+    private void finishMoveState() {
+        rebuildGameObjects();
+        if (allDiceUsed() || !hasAnyMove()) {
+            lightTurn = !lightTurn;
+            diceRolled = false;
+            dieUsed[0] = dieUsed[1] = true;
+            status = lightTurn ? "Light's turn — roll" : "Dark's turn — roll";
+        } else {
+            status = lightTurn ? "Light: choose your next move" : "Dark: choose your next move";
+        }
+        statusTimer = 1.1f;
+    }
+
     private void selectPoint(int point) {
         if (!diceRolled || allDiceUsed()) return;
         if (!owns(point)) {
@@ -229,10 +292,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private void clearMoveMarkers() { moveMarkers.clear(); }
 
     private void tryMove(int destination) {
+        if (moveAnimating) return;
         if (selectedPoint < 0) {
             selectPoint(destination);
             return;
         }
+
         int dieIndex = -1;
         for (int d = 0; d < 2; d++) {
             if (!dieUsed[d] && canMoveWithDie(selectedPoint, destination, dice[d])) {
@@ -249,25 +314,22 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             return;
         }
 
+        final int from = selectedPoint;
+        final int sourceStackIndex = Math.abs(points[from]) - 1;
+        ModelInstance piece = findTopChecker(from);
+
         int sign = lightTurn ? 1 : -1;
         if (lightTurn && points[destination] == -1) { points[destination] = 0; darkBar++; }
         if (!lightTurn && points[destination] == 1) { points[destination] = 0; lightBar++; }
-        points[selectedPoint] -= sign;
+        points[from] -= sign;
         points[destination] += sign;
         dieUsed[dieIndex] = true;
         selectedPoint = -1;
         clearMoveMarkers();
-        rebuildGameObjects();
 
-        if (allDiceUsed() || !hasAnyMove()) {
-            lightTurn = !lightTurn;
-            diceRolled = false;
-            dieUsed[0] = dieUsed[1] = true;
-            status = lightTurn ? "Light's turn — roll" : "Dark's turn — roll";
-        } else {
-            status = lightTurn ? "Light: choose your next move" : "Dark: choose your next move";
-        }
-        statusTimer = 1.1f;
+        status = "Moving...";
+        statusTimer = 0.8f;
+        startMoveAnimation(piece, from, destination, sourceStackIndex);
     }
 
     private int nearestPoint(float x, float z) {
@@ -284,6 +346,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void pickBoard(int screenX, int screenY) {
+        if (moveAnimating) return;
         Ray ray = camera.getPickRay(screenX, screenY);
         Plane plane = new Plane(Vector3.Y, 0.68f);
         if (Intersector.intersectRayPlane(ray, plane, tmp)) {
@@ -499,6 +562,21 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             float spin = 900f * delta;
             if (dieInstanceA != null) dieInstanceA.transform.rotate(Vector3.X, spin).rotate(Vector3.Y, spin * 0.65f);
             if (dieInstanceB != null) dieInstanceB.transform.rotate(Vector3.X, -spin * 0.85f).rotate(Vector3.Z, spin);
+        }
+        if (moveAnimating && movingPiece != null) {
+            moveTime += delta;
+            float t = MathUtils.clamp(moveTime / MOVE_DURATION, 0f, 1f);
+            float eased = t * t * (3f - 2f * t);
+            float arc = MathUtils.sin(MathUtils.PI * t) * 1.15f;
+            tmp.set(moveStart).lerp(moveEnd, eased);
+            tmp.y += arc;
+            movingPiece.transform.setToTranslation(tmp);
+            if (t >= 1f) {
+                models.removeValue(movingPiece, true);
+                movingPiece = null;
+                moveAnimating = false;
+                finishMoveState();
+            }
         }
 
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
