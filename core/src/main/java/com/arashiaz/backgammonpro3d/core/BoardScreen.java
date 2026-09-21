@@ -469,11 +469,17 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 wood(0.58f, 0.22f, 0.050f, 40f), attrs);
         models.add(new ModelInstance(barHighlight, 0f, 0.61f, 0f));
 
+        Material barCapMaterial = wood(0.34f, 0.11f, 0.022f, 46f);
+        Model barCap = mb.createBox(0.28f, 0.035f, 8.35f, barCapMaterial, attrs);
+        models.add(new ModelInstance(barCap, 0f, 0.665f, 0f));
+
         // Real flat triangular points, not cones.
         darkPointModel = createPointModel(
-                wood(0.085f, 0.018f, 0.012f, 28f), attrs, true);
+                wood(0.085f, 0.018f, 0.012f, 28f),
+                wood(0.12f, 0.028f, 0.015f, 36f), attrs);
         lightPointModel = createPointModel(
-                wood(0.72f, 0.43f, 0.15f, 32f), attrs, false);
+                wood(0.72f, 0.43f, 0.15f, 32f),
+                wood(0.86f, 0.60f, 0.25f, 42f), attrs);
 
         float[] xs = XS;
 
@@ -658,7 +664,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
     }
 
-    private Model createPointModel(Material material, long attrs, boolean unused) {
+    private Model createPointModel(Material material, Material detailMaterial, long attrs) {
         mb.begin();
         MeshPartBuilder p = mb.part("point", GL20.GL_TRIANGLES, attrs, material);
 
@@ -683,6 +689,18 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         p.triangle(b0, c1, b1);
         p.triangle(c0, a0, a1);
         p.triangle(c0, a1, c1);
+
+        // Raised inset face: a smaller, darker/brighter triangular field gives
+        // the point a hand-finished layered-wood appearance.
+        MeshPartBuilder detail = mb.part("point_detail", GL20.GL_TRIANGLES, attrs, detailMaterial);
+        final float dw = 0.405f;
+        final float dzBase = 1.80f;
+        final float dzTip = -1.49f;
+        final float dy = y1 + 0.006f;
+        Vector3 da = new Vector3(-dw, dy, dzBase);
+        Vector3 db = new Vector3( dw, dy, dzBase);
+        Vector3 dc = new Vector3(0f, dy, dzTip);
+        detail.triangle(da, db, dc);
 
         return mb.end();
     }
