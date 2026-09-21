@@ -18,9 +18,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 /**
  * Backgammon Pro 3D - polished board prototype.
  *
- * The scene is intentionally procedural so the Android build has no external
- * asset dependency yet. Geometry is kept reusable to reduce draw calls and
- * memory pressure on mobile GPUs.
+ * The board uses a real photographic walnut veneer texture for the furniture surfaces.
+ * Geometry remains reusable to keep draw calls and mobile GPU memory under control.
  */
 public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private static final float[] XS = {-7.05f, -5.75f, -4.45f, -3.15f, -1.85f, -0.55f,
@@ -449,32 +448,32 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
                 21.4f, 0.72f, 10.7f,
-                woodTextured(0.72f, 0.36f, 0.17f, 28f), attrs);
+                woodTextured(0.62f, 0.50f, 0.40f, 30f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
         playingSurfaceModel = mb.createBox(
                 18.35f, 0.34f, 9.95f,
-                woodTextured(0.88f, 0.53f, 0.28f, 24f), attrs);
+                woodTextured(0.72f, 0.61f, 0.50f, 26f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
                 17.55f, 0.18f, 9.05f,
-                surface(0.42f, 0.27f, 0.17f), attrs);
+                surface(0.075f, 0.060f, 0.050f), attrs);
         models.add(new ModelInstance(felt, 0f, 0.27f, 0f));
 
         railModel = mb.createBox(
                 18.05f, 0.10f, 9.55f,
-                woodTextured(0.66f, 0.30f, 0.12f, 38f), attrs);
+                woodTextured(0.58f, 0.46f, 0.36f, 40f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
         Model innerMat = mb.createBox(
                 17.55f, 0.08f, 9.05f,
-                surface(0.36f, 0.21f, 0.13f), attrs);
+                surface(0.050f, 0.042f, 0.036f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
-        Material innerRailMat = woodTextured(0.58f, 0.25f, 0.095f, 48f);
+        Material innerRailMat = woodTextured(0.52f, 0.42f, 0.33f, 50f);
         Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
         Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
         models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
@@ -505,11 +504,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Real flat triangular points, not cones.
         darkPointModel = createPointModel(
-                woodTextured(0.56f, 0.18f, 0.23f, 34f),
-                woodTextured(0.68f, 0.28f, 0.34f, 42f), attrs);
+                woodTextured(0.52f, 0.31f, 0.30f, 34f),
+                woodTextured(0.64f, 0.40f, 0.37f, 42f), attrs);
         lightPointModel = createPointModel(
-                woodTextured(0.88f, 0.70f, 0.47f, 34f),
-                woodTextured(0.96f, 0.83f, 0.62f, 44f), attrs);
+                woodTextured(0.78f, 0.69f, 0.57f, 34f),
+                woodTextured(0.88f, 0.80f, 0.67f, 44f), attrs);
 
         float[] xs = XS;
 
@@ -600,7 +599,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // They remain part of the board shell, so the playfield keeps its clean silhouette.
         sideTrayModel = mb.createBox(
                 1.45f, 0.16f, 9.00f,
-                woodTextured(0.34f, 0.12f, 0.055f, 24f), attrs);
+                woodTextured(0.42f, 0.34f, 0.28f, 28f), attrs);
         sideTrayInsetModel = mb.createBox(
                 1.12f, 0.07f, 8.55f,
                 surface(0.055f, 0.018f, 0.010f), attrs);
@@ -610,7 +609,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(sideTrayInsetModel,  9.72f, 0.31f, 0f));
 
         // Thin walnut lips make the wells read as routed recesses.
-        Material trayLip = woodTextured(0.62f, 0.28f, 0.095f, 38f);
+        Material trayLip = woodTextured(0.56f, 0.45f, 0.36f, 42f);
         Model trayLipX = mb.createBox(0.08f, 0.075f, 8.72f, trayLip, attrs);
         models.add(new ModelInstance(trayLipX, -9.06f, 0.39f, 0f));
         models.add(new ModelInstance(trayLipX, -10.38f, 0.39f, 0f));
@@ -620,7 +619,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Decorative medallions on each half of the board.
         medallionModel = mb.createCylinder(
                 0.43f, 0.035f, 0.43f, 48,
-                woodTextured(0.58f, 0.25f, 0.085f, 48f), attrs);
+                woodTextured(0.56f, 0.45f, 0.34f, 50f), attrs);
         medallionRingModel = mb.createCylinder(
                 0.31f, 0.045f, 0.31f, 48,
                 wood(0.72f, 0.46f, 0.15f, 58f), attrs);
