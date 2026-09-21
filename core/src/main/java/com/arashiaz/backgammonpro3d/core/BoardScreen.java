@@ -8,6 +8,10 @@ import com.badlogic.gdx.graphics.g3d.environment.*;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
 /**
  * Backgammon Pro 3D - polished board prototype.
@@ -21,6 +25,29 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private final ModelBatch batch = new ModelBatch();
     private final Environment environment = new Environment();
     private final Array<ModelInstance> models = new Array<>();
+    private final Array<ModelInstance> gameObjects = new Array<>();
+    private final Array<ModelInstance> moveMarkers = new Array<>();
+
+    // Real backgammon state: positive = Light, negative = Dark.
+    private final int[] points = new int[24];
+    private int lightBar, darkBar;
+    private int lightOff, darkOff;
+    private boolean lightTurn = true;
+    private final int[] dice = {0, 0};
+    private final boolean[] dieUsed = {true, true};
+    private boolean diceRolled;
+    private int selectedPoint = -1;
+
+    private final ShapeRenderer uiShape = new ShapeRenderer();
+    private final SpriteBatch uiBatch = new SpriteBatch();
+    private final BitmapFont uiFont = new BitmapFont();
+    private final GlyphLayout uiLayout = new GlyphLayout();
+    private final Rectangle rollButton = new Rectangle();
+    private boolean uiTouch;
+    private float downX, downY;
+    private boolean dragged;
+    private String status = "Roll the dice to start";
+    private float statusTimer;
     private final ModelBuilder mb = new ModelBuilder();
 
     private Model baseModel, playingSurfaceModel, railModel, barModel;
@@ -41,6 +68,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(this);
+        uiFont.getData().setScale(1.12f);
+        resetGameState();
 
         environment.set(new ColorAttribute(
                 ColorAttribute.AmbientLight, 0.42f, 0.43f, 0.46f, 1f));
