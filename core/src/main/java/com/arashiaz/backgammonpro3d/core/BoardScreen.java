@@ -460,7 +460,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void addPip(float x, float y, float z) {
-        models.add(new ModelInstance(dieDotModel, x, y, z));
+        ModelInstance pip = new ModelInstance(dieDotModel, x, y, z);
+        gameObjects.add(pip);
+        models.add(pip);
     }
 
     private void updateCamera() {
@@ -482,6 +484,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public void render(float delta) {
+        if (statusTimer > 0f) statusTimer -= delta;
+
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl.glClearColor(0.012f, 0.015f, 0.020f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
@@ -489,31 +493,72 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         camera.update();
         batch.begin(camera);
-        for (ModelInstance model : models) {
-            batch.render(model, environment);
-        }
+        for (ModelInstance model : models) batch.render(model, environment);
+        for (ModelInstance marker : moveMarkers) batch.render(marker, environment);
         batch.end();
+
+        renderUi();
+    }
+
+    private void renderUi() {
+        float w = Gdx.graphics.getWidth();
+        float h = Gdx.graphics.getHeight();
+        rollButton.set(24f, 24f, Math.min(210f, w * 0.32f), 72f);
+
+        uiShape.begin(ShapeRenderer.ShapeType.Filled);
+        uiShape.setColor(0.025f, 0.035f, 0.050f, 0.92f);
+        uiShape.rect(0f, h - 92f, w, 92f);
+        uiShape.setColor(0.10f, 0.14f, 0.19f, 0.96f);
+        uiShape.rect(rollButton.x, rollButton.y, rollButton.width, rollButton.height);
+        uiShape.end();
+
+        uiBatch.begin();
+        uiFont.setColor(Color.WHITE);
+        String turn = lightTurn ? "LIGHT" : "DARK";
+        String diceText = diceRolled ? (dice[0] + " + " + dice[1]) : "READY";
+        uiLayout.setText(uiFont, turn + "  •  " + diceText);
+        uiFont.draw(uiBatch, uiLayout, 24f, h - 34f);
+
+        String buttonText = diceRolled && !allDiceUsed() ? "USE DICE" : "ROLL DICE";
+        uiLayout.setText(uiFont, buttonText);
+        uiFont.draw(uiBatch, uiLayout,
+                rollButton.x + (rollButton.width - uiLayout.width) * 0.5f,
+                rollButton.y + 46f);
+
+        uiFont.getData().setScale(0.86f);
+        uiFont.setColor(0.90f, 0.84f, 0.66f, 1f);
+        String score = "BAR " + lightBar + " / " + darkBar + "    OFF " + lightOff + " / " + darkOff;
+        uiFont.draw(uiBatch, score, 24f, h - 66f);
+        uiFont.getData().setScale(1.12f);
+
+        if (statusTimer > 0f || !diceRolled) {
+            uiFont.setColor(Color.WHITE);
+            uiFont.draw(uiBatch, status, rollButton.x + rollButton.width + 28f, rollButton.y + 46f);
+        }
+        uiBatch.end();
     }
 
     @Override
     public boolean touchDown(int x, int y, int pointer, int button) {
-        lastX = x;
-        lastY = y;
-        dragging = true;
+        downX = lastX = x;
+        downY = lastY = y;
+        dragged = false;
+        float uiY = Gdx.graphics.getHeight() - y;
+        uiTouch = rollButton.contains(x, uiY);
         return true;
     }
 
     @Override
     public boolean touchDragged(int x, int y, int pointer) {
-        if (!dragging) return true;
+        if (uiTouch) return true;
+        if (Math.abs(x - downX) + Math.abs(y - downY) > 12f) dragged = true;
+        if (!dragged) return true;
 
         float dx = x - lastX;
         float dy = y - lastY;
-
         cameraAzimuth = MathUtils.clamp(cameraAzimuth - dx * 0.18f, -28f, 28f);
         cameraElevation = MathUtils.clamp(cameraElevation - dy * 0.12f, 35f, 64f);
         updateCamera();
-
         lastX = x;
         lastY = y;
         return true;
@@ -521,13 +566,21 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean touchUp(int x, int y, int pointer, int button) {
-        dragging = false;
+        float uiY = Gdx.graphics.getHeight() - y;
+        if (uiTouch) {
+            if (rollButton.contains(x, uiY)) rollDice();
+            uiTouch = false;
+            return true;
+        }
+        if (!dragged) pickBoard(x, y);
+        dragged = false;
         return true;
     }
 
     @Override
     public boolean touchCancelled(int x, int y, int pointer, int button) {
-        dragging = false;
+        dragged = false;
+        uiTouch = false;
         return true;
     }
 
@@ -558,6 +611,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public void dispose() {
         batch.dispose();
+        uiShape.dispose();
+        uiBatch.dispose();
+        uiFont.dispose();
         if (baseModel != null) baseModel.dispose();
         if (playingSurfaceModel != null) playingSurfaceModel.dispose();
         if (railModel != null) railModel.dispose();
