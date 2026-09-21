@@ -112,7 +112,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         environment.add(new DirectionalLight().set(
                 0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
 
-        woodTexture = createWoodTexture(256);
+        woodTexture = createWoodTexture(512);
         buildBoard();
         updateCamera();
     }
@@ -428,27 +428,51 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private Texture createWoodTexture(int size) {
         Pixmap pix = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+
+        // A soft procedural walnut/mahogany grain. The grain is elongated
+        // instead of forming repeated horizontal scan-lines, so the same
+        // texture reads naturally on the frame, rails and UV-mapped points.
         for (int y = 0; y < size; y++) {
-            // Long, irregular walnut grain. The previous high-frequency bands
-            // looked like horizontal scan lines on the board; this version uses
-            // several low-frequency layers so the wood reads as a continuous,
-            // hand-finished surface.
-            float broad = MathUtils.sin(y * 0.055f
-                    + MathUtils.sin(y * 0.011f) * 2.6f);
+            float v = y / (float) (size - 1);
+            float broadWarp = MathUtils.sin(v * 7.5f) * 0.32f
+                    + MathUtils.sin(v * 17.0f + 0.8f) * 0.11f;
+
             for (int x = 0; x < size; x++) {
-                float streak = MathUtils.sin(y * 0.145f
-                        + MathUtils.sin(x * 0.021f) * 2.1f
-                        + MathUtils.sin(x * 0.006f + y * 0.012f) * 1.7f);
-                float fine = MathUtils.sin(x * 0.095f + y * 0.018f)
-                        + MathUtils.sin(x * 0.31f + y * 0.024f) * 0.22f;
-                float variation = broad * 0.085f + streak * 0.035f + fine * 0.018f;
-                float v = MathUtils.clamp(0.56f + variation, 0.18f, 0.86f);
-                float r = MathUtils.clamp(0.30f + v * 0.27f, 0f, 1f);
-                float g = MathUtils.clamp(0.105f + v * 0.145f, 0f, 1f);
-                float b = MathUtils.clamp(0.038f + v * 0.075f, 0f, 1f);
+                float u = x / (float) (size - 1);
+
+                float grain = MathUtils.sin(u * 34.0f
+                        + broadWarp
+                        + MathUtils.sin(v * 42.0f) * 0.42f);
+                float fineGrain = MathUtils.sin(u * 105.0f
+                        + MathUtils.sin(v * 24.0f) * 1.5f) * 0.20f;
+                float broad = MathUtils.sin(u * 8.0f
+                        + MathUtils.sin(v * 9.0f) * 2.2f) * 0.12f;
+
+                // A few stretched knots break the perfectly procedural look.
+                float knot1 = MathUtils.exp(
+                        -(((u - 0.23f) * (u - 0.23f)) / 0.0035f
+                        + ((v - 0.34f) * (v - 0.34f)) / 0.030f)) * 0.18f;
+                float knot2 = MathUtils.exp(
+                        -(((u - 0.74f) * (u - 0.74f)) / 0.0045f
+                        + ((v - 0.69f) * (v - 0.69f)) / 0.040f)) * 0.14f;
+
+                float variation = grain * 0.075f
+                        + fineGrain * 0.028f
+                        + broad
+                        - knot1 - knot2;
+
+                float base = MathUtils.clamp(0.56f + variation, 0.16f, 0.88f);
+
+                // Warm natural wood palette: walnut brown with restrained
+                // red/gold warmth, avoiding the previous saturated orange.
+                float r = MathUtils.clamp(0.25f + base * 0.34f, 0f, 1f);
+                float g = MathUtils.clamp(0.075f + base * 0.17f, 0f, 1f);
+                float b = MathUtils.clamp(0.026f + base * 0.075f, 0f, 1f);
+
                 pix.drawPixel(x, y, Color.rgba8888(r, g, b, 1f));
             }
         }
+
         Texture texture = new Texture(pix, true);
         texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
         texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
