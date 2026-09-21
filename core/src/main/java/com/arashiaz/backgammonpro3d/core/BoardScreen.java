@@ -69,6 +69,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private final Vector3 tmp = new Vector3();
     private ModelInstance dieInstanceA, dieInstanceB;
     private float diceRollTime;
+    private float diceRollElapsed;
+    private int rollingFaceA = 1;
+    private int rollingFaceB = 1;
     private ModelInstance movingPiece;
     private final Vector3 moveStart = new Vector3();
     private final Vector3 moveEnd = new Vector3();
@@ -150,9 +153,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
         dice[0] = MathUtils.random(1, 6);
         dice[1] = MathUtils.random(1, 6);
+        rollingFaceA = MathUtils.random(1, 6);
+        rollingFaceB = MathUtils.random(1, 6);
         dieUsed[0] = dieUsed[1] = false;
         diceRolled = true;
-        diceRollTime = 0.42f;
+        diceRollElapsed = 0f;
+        diceRollTime = 0.85f;
         selectedPoint = -1;
         clearMoveMarkers();
         status = lightTurn ? "Light: choose a checker" : "Dark: choose a checker";
@@ -292,7 +298,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private void clearMoveMarkers() { moveMarkers.clear(); }
 
     private void tryMove(int destination) {
-        if (moveAnimating) return;
+        if (moveAnimating || diceRollTime > 0f) return;
         if (selectedPoint < 0) {
             selectPoint(destination);
             return;
@@ -558,10 +564,22 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     public void render(float delta) {
         if (statusTimer > 0f) statusTimer -= delta;
         if (diceRollTime > 0f) {
+            diceRollElapsed += delta;
             diceRollTime = Math.max(0f, diceRollTime - delta);
-            float spin = 900f * delta;
-            if (dieInstanceA != null) dieInstanceA.transform.rotate(Vector3.X, spin).rotate(Vector3.Y, spin * 0.65f);
-            if (dieInstanceB != null) dieInstanceB.transform.rotate(Vector3.X, -spin * 0.85f).rotate(Vector3.Z, spin);
+            float spin = 1080f * delta;
+            if (dieInstanceA != null) {
+                dieInstanceA.transform.rotate(Vector3.X, spin).rotate(Vector3.Y, spin * 0.65f);
+                dieInstanceA.transform.translate(0f, MathUtils.sin(diceRollElapsed * 24f) * delta * 2.2f, 0f);
+            }
+            if (dieInstanceB != null) {
+                dieInstanceB.transform.rotate(Vector3.X, -spin * 0.85f).rotate(Vector3.Z, spin);
+                dieInstanceB.transform.translate(0f, MathUtils.sin(diceRollElapsed * 27f + 0.8f) * delta * 2.2f, 0f);
+            }
+            if (diceRollTime <= 0f) {
+                diceRollElapsed = 0f;
+                rebuildGameObjects();
+                if (Gdx.input.isPeripheralAvailable(Input.Peripheral.Vibrator)) Gdx.input.vibrate(35);
+            }
         }
         if (moveAnimating && movingPiece != null) {
             moveTime += delta;
@@ -609,7 +627,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         uiFont.getData().setScale(1.28f);
         uiFont.setColor(Color.WHITE);
         String turn = lightTurn ? "LIGHT" : "DARK";
-        String diceText = diceRolled ? (dice[0] + "  •  " + dice[1]) : "READY";
+        String diceText = diceRolled
+                ? (diceRollTime > 0f ? "ROLLING" : dice[0] + "  •  " + dice[1])
+                : "READY";
         uiLayout.setText(uiFont, turn + "   " + diceText);
         uiFont.draw(uiBatch, uiLayout, 28f, h - 38f);
 
@@ -665,7 +685,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     public boolean touchUp(int x, int y, int pointer, int button) {
         float uiY = Gdx.graphics.getHeight() - y;
         if (uiTouch) {
-            if (rollButton.contains(x, uiY)) rollDice();
+            if (rollButton.contains(x, uiY) && !moveAnimating && diceRollTime <= 0f) rollDice();
             uiTouch = false;
             return true;
         }
