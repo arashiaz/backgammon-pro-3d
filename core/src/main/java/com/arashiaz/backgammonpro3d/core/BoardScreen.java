@@ -525,55 +525,38 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private Model createBeveledDieModel(long attrs) {
         mb.begin();
-        Material dieMaterial = new Material(
+        Material m = new Material(
                 ColorAttribute.createDiffuse(0.94f, 0.92f, 0.84f, 1f),
                 ColorAttribute.createSpecular(0.72f, 0.68f, 0.58f, 1f),
                 FloatAttribute.createShininess(70f));
-        MeshPartBuilder p = mb.part("die", GL20.GL_TRIANGLES, attrs, dieMaterial);
+        MeshPartBuilder p = mb.part("die", GL20.GL_TRIANGLES, attrs, m);
 
         final float h = 0.61f;
-        final float b = 0.09f;
-        final float core = h - b;
+        final float b = 0.085f;
+        final float q = h - b;
 
-        Vector3[] v = new Vector3[8];
-        v[0]=new Vector3(-core,-h,-core); v[1]=new Vector3(core,-h,-core);
-        v[2]=new Vector3(core,-h,core);   v[3]=new Vector3(-core,-h,core);
-        v[4]=new Vector3(-core,h, -core); v[5]=new Vector3(core,h,-core);
-        v[6]=new Vector3(core,h,core);    v[7]=new Vector3(-core,h,core);
+        // Main faces.
+        triQuad(p, new Vector3(-q,h,-q), new Vector3(q,h,-q), new Vector3(q,h,q), new Vector3(-q,h,q));
+        triQuad(p, new Vector3(-q,-h,q), new Vector3(q,-h,q), new Vector3(q,-h,-q), new Vector3(-q,-h,-q));
+        triQuad(p, new Vector3(-q,-q,-h), new Vector3(q,-q,-h), new Vector3(q,q,-h), new Vector3(-q,q,-h));
+        triQuad(p, new Vector3(q,-q,-h), new Vector3(q,-q,q), new Vector3(q,q,q), new Vector3(q,q,-h));
+        triQuad(p, new Vector3(-q,-q,q), new Vector3(-q,-q,-h), new Vector3(-q,q,-h), new Vector3(-q,q,q));
+        triQuad(p, new Vector3(-q,-q,q), new Vector3(q,-q,q), new Vector3(q,q,q), new Vector3(-q,q,q));
 
-        // Rounded-looking chamfered cube: inset core faces plus connecting bevel bands.
-        p.quad(v[4],v[5],v[6],v[7]);
-        p.quad(v[0],v[3],v[2],v[1]);
-        p.quad(v[0],v[1],v[5],v[4]);
-        p.quad(v[1],v[2],v[6],v[5]);
-        p.quad(v[2],v[3],v[7],v[6]);
-        p.quad(v[3],v[0],v[4],v[7]);
+        // Chamfer strips around the visible edges.
+        triQuad(p, new Vector3(-h,q,-q), new Vector3(-q,q,-q), new Vector3(-q,h,-q), new Vector3(-h,h,-q));
+        triQuad(p, new Vector3(q,q,-q), new Vector3(h,q,-q), new Vector3(h,h,-q), new Vector3(q,h,-q));
+        triQuad(p, new Vector3(-q,q,q), new Vector3(q,q,q), new Vector3(q,h,q), new Vector3(-q,h,q));
+        triQuad(p, new Vector3(-q,-q,-h), new Vector3(q,-q,-h), new Vector3(q,-h,-q), new Vector3(-q,-h,-q));
+        triQuad(p, new Vector3(q,-q,-h), new Vector3(q,-q,q), new Vector3(h,-q,q), new Vector3(h,-q,-h));
+        triQuad(p, new Vector3(-q,-q,q), new Vector3(-q,-q,-h), new Vector3(-h,-q,-h), new Vector3(-h,-q,q));
 
-        float outer=h, inner=core;
-        Vector3[][] rings = {
-            {new Vector3(-outer,inner,-inner),new Vector3(outer,inner,-inner),
-             new Vector3(outer,inner,inner),new Vector3(-outer,inner,inner)},
-            {new Vector3(-inner,outer,-inner),new Vector3(inner,outer,-inner),
-             new Vector3(inner,outer,inner),new Vector3(-inner,outer,inner)}
-        };
-        // Subtle bevel strips on the six edges.
-        p.quad(new Vector3(-outer,inner,-inner),new Vector3(outer,inner,-inner),
-               new Vector3(outer,outer,-inner),new Vector3(-outer,outer,-inner));
-        p.quad(new Vector3(outer,inner,-inner),new Vector3(outer,inner,inner),
-               new Vector3(outer,outer,inner),new Vector3(outer,outer,-inner));
-        p.quad(new Vector3(outer,inner,inner),new Vector3(-outer,inner,inner),
-               new Vector3(-outer,outer,inner),new Vector3(outer,outer,inner));
-        p.quad(new Vector3(-outer,inner,inner),new Vector3(-outer,inner,-inner),
-               new Vector3(-outer,outer,-inner),new Vector3(-outer,outer,inner));
-        p.quad(new Vector3(-outer,-inner,-inner),new Vector3(outer,-inner,-inner),
-               new Vector3(outer,-outer,-inner),new Vector3(-outer,-outer,-inner));
-        p.quad(new Vector3(outer,-inner,-inner),new Vector3(outer,-inner,inner),
-               new Vector3(outer,-outer,inner),new Vector3(outer,-outer,-inner));
-        p.quad(new Vector3(outer,-inner,inner),new Vector3(-outer,-inner,inner),
-               new Vector3(-outer,-outer,inner),new Vector3(outer,-outer,inner));
-        p.quad(new Vector3(-outer,-inner,inner),new Vector3(-outer,-inner,-inner),
-               new Vector3(-outer,-outer,-inner),new Vector3(-outer,-outer,inner));
         return mb.end();
+    }
+
+    private void triQuad(MeshPartBuilder p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) {
+        p.triangle(a, b, c);
+        p.triangle(a, c, d);
     }
 
     private Model createBeveledCheckerModel(Material material, long attrs) {
