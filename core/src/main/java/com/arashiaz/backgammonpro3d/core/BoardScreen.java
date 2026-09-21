@@ -542,6 +542,16 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 surface(0.19f, 0.060f, 0.018f), attrs);
         models.add(new ModelInstance(diceTrayInset, 0f, 0.715f, 0f));
 
+        // Raised brass trim around the dice well gives the center a crafted,
+        // furniture-like finish while keeping the dice area visually clean.
+        Material trayTrim = wood(0.66f, 0.34f, 0.075f, 48f);
+        Model trayTrimX = mb.createBox(4.05f, 0.045f, 0.075f, trayTrim, attrs);
+        Model trayTrimZ = mb.createBox(0.075f, 0.045f, 1.95f, trayTrim, attrs);
+        models.add(new ModelInstance(trayTrimX, 0f, 0.79f, -1.00f));
+        models.add(new ModelInstance(trayTrimX, 0f, 0.79f,  1.00f));
+        models.add(new ModelInstance(trayTrimZ, -2.00f, 0.79f, 0f));
+        models.add(new ModelInstance(trayTrimZ,  2.00f, 0.79f, 0f));
+
         // Four small brass-like fasteners on the board corners.
         screwModel = mb.createCylinder(
                 0.105f, 0.045f, 0.105f, 24,
@@ -555,34 +565,14 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Model createBeveledDieModel(long attrs) {
-        mb.begin();
+        // A clean closed cube is intentionally used for the die body. It is
+        // more robust on mobile GPUs than a partially chamfered custom mesh,
+        // while the metallic pips and tray provide the premium detail.
         Material m = new Material(
-                ColorAttribute.createDiffuse(0.94f, 0.92f, 0.84f, 1f),
-                ColorAttribute.createSpecular(0.72f, 0.68f, 0.58f, 1f),
-                FloatAttribute.createShininess(70f));
-        MeshPartBuilder p = mb.part("die", GL20.GL_TRIANGLES, attrs, m);
-
-        final float h = 0.61f;
-        final float b = 0.085f;
-        final float q = h - b;
-
-        // Main faces.
-        triQuad(p, new Vector3(-q,h,-q), new Vector3(q,h,-q), new Vector3(q,h,q), new Vector3(-q,h,q));
-        triQuad(p, new Vector3(-q,-h,q), new Vector3(q,-h,q), new Vector3(q,-h,-q), new Vector3(-q,-h,-q));
-        triQuad(p, new Vector3(-q,-q,-h), new Vector3(q,-q,-h), new Vector3(q,q,-h), new Vector3(-q,q,-h));
-        triQuad(p, new Vector3(q,-q,-h), new Vector3(q,-q,q), new Vector3(q,q,q), new Vector3(q,q,-h));
-        triQuad(p, new Vector3(-q,-q,q), new Vector3(-q,-q,-h), new Vector3(-q,q,-h), new Vector3(-q,q,q));
-        triQuad(p, new Vector3(-q,-q,q), new Vector3(q,-q,q), new Vector3(q,q,q), new Vector3(-q,q,q));
-
-        // Chamfer strips around the visible edges.
-        triQuad(p, new Vector3(-h,q,-q), new Vector3(-q,q,-q), new Vector3(-q,h,-q), new Vector3(-h,h,-q));
-        triQuad(p, new Vector3(q,q,-q), new Vector3(h,q,-q), new Vector3(h,h,-q), new Vector3(q,h,-q));
-        triQuad(p, new Vector3(-q,q,q), new Vector3(q,q,q), new Vector3(q,h,q), new Vector3(-q,h,q));
-        triQuad(p, new Vector3(-q,-q,-h), new Vector3(q,-q,-h), new Vector3(q,-h,-q), new Vector3(-q,-h,-q));
-        triQuad(p, new Vector3(q,-q,-h), new Vector3(q,-q,q), new Vector3(h,-q,q), new Vector3(h,-q,-h));
-        triQuad(p, new Vector3(-q,-q,q), new Vector3(-q,-q,-h), new Vector3(-h,-q,-h), new Vector3(-h,-q,q));
-
-        return mb.end();
+                ColorAttribute.createDiffuse(0.965f, 0.945f, 0.885f, 1f),
+                ColorAttribute.createSpecular(0.82f, 0.76f, 0.62f, 1f),
+                FloatAttribute.createShininess(82f));
+        return mb.createBox(1.16f, 1.16f, 1.16f, m, attrs);
     }
 
     private void triQuad(MeshPartBuilder p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) {
@@ -824,8 +814,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         rollButton.set(24f, 24f, Math.min(260f, w * 0.30f), 84f);
 
         uiShape.begin(ShapeRenderer.ShapeType.Filled);
-        uiShape.setColor(0.018f, 0.023f, 0.032f, 0.96f);
+        uiShape.setColor(0.010f, 0.014f, 0.021f, 0.94f);
         uiShape.rect(0f, h - 112f, w, 112f);
+        uiShape.setColor(0.56f, 0.36f, 0.14f, 0.75f);
+        uiShape.rect(0f, h - 114f, w, 2f);
+        uiShape.setColor(0.10f, 0.12f, 0.16f, 0.92f);
+        uiShape.rect(20f, h - 94f, Math.min(230f, w * 0.34f), 54f);
         uiShape.end();
 
         uiBatch.begin();
