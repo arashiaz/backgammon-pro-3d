@@ -49,6 +49,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private boolean uiTouch;
     private float downX, downY;
     private boolean dragged;
+    private boolean diceTouch;
+    private float diceThrowStrength;
+    private float diceSwipeDistance;
     private String status = "Roll the dice to start";
     private float statusTimer;
     private final ModelBuilder mb = new ModelBuilder();
@@ -147,7 +150,19 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         return false;
     }
 
+    private boolean hitDie(int screenX, int screenY) {
+        Ray ray = camera.getPickRay(screenX, screenY);
+        Plane plane = new Plane(Vector3.Y, 1.06f);
+        if (!Intersector.intersectRayPlane(ray, plane, tmp)) return false;
+        return (tmp.x + 1.55f) * (tmp.x + 1.55f) + tmp.z * tmp.z < 1.15f * 1.15f
+                || (tmp.x - 1.55f) * (tmp.x - 1.55f) + tmp.z * tmp.z < 1.15f * 1.15f;
+    }
+
     private void rollDice() {
+        rollDice(0f);
+    }
+
+    private void rollDice(float throwStrength) {
         if (diceRolled && !allDiceUsed()) {
             status = "Use the current dice first";
             statusTimer = 1.1f;
@@ -162,6 +177,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         diceRollElapsed = 0f;
         lastDiceLiftA = 0f;
         lastDiceLiftB = 0f;
+        diceThrowStrength = MathUtils.clamp(throwStrength, 0f, 650f);
         diceRollTime = 0.85f;
         selectedPoint = -1;
         clearMoveMarkers();
@@ -575,7 +591,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (diceRollTime > 0f) {
             diceRollElapsed += delta;
             diceRollTime = Math.max(0f, diceRollTime - delta);
-            float spin = 1080f * delta;
+            float spin = (1080f + diceThrowStrength * 2.2f) * delta;
             if (dieInstanceA != null) {
                 dieInstanceA.transform.rotate(Vector3.X, spin).rotate(Vector3.Y, spin * 0.65f);
                 float liftA = MathUtils.sin(diceRollElapsed * 24f) * 0.22f;
@@ -640,8 +656,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         uiShape.begin(ShapeRenderer.ShapeType.Filled);
         uiShape.setColor(0.018f, 0.023f, 0.032f, 0.96f);
         uiShape.rect(0f, h - 112f, w, 112f);
-        uiShape.setColor(0.08f, 0.12f, 0.17f, 1f);
-        uiShape.rect(rollButton.x, rollButton.y, rollButton.width, rollButton.height);
         uiShape.end();
 
         uiBatch.begin();
@@ -659,18 +673,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         String score = "BAR  " + lightBar + " / " + darkBar + "     OFF  " + lightOff + " / " + darkOff;
         uiFont.draw(uiBatch, score, 28f, h - 78f);
 
-        uiFont.getData().setScale(1.02f);
-        uiFont.setColor(Color.WHITE);
-        String buttonText = diceRolled && !allDiceUsed() ? "USE DICE" : "ROLL DICE";
-        uiLayout.setText(uiFont, buttonText);
-        uiFont.draw(uiBatch, uiLayout,
-                rollButton.x + (rollButton.width - uiLayout.width) * 0.5f,
-                rollButton.y + 53f);
-
         uiFont.getData().setScale(0.98f);
         if (statusTimer > 0f || !diceRolled) {
             uiFont.setColor(0.82f, 0.86f, 0.92f, 1f);
-            uiFont.draw(uiBatch, status, rollButton.x + rollButton.width + 28f, rollButton.y + 52f);
+            String hint = !diceRolled ? "Tap or throw the dice" : status;
+            uiFont.draw(uiBatch, hint, 28f, 42f);
         }
         uiFont.getData().setScale(1.12f);
         uiBatch.end();
@@ -681,14 +688,23 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         downX = lastX = x;
         downY = lastY = y;
         dragged = false;
-        float uiY = Gdx.graphics.getHeight() - y;
-        uiTouch = rollButton.contains(x, uiY);
+        diceTouch = !moveAnimating && diceRollTime <= 0f && hitDie(x, y);
+        diceSwipeDistance = 0f;
+        uiTouch = false;
         return true;
     }
 
     @Override
     public boolean touchDragged(int x, int y, int pointer) {
-        if (uiTouch) return true;
+        if (diceTouch) {
+            float dx = x - downX;
+            float dy = y - downY;
+            diceSwipeDistance = MathUtils.clamp((float)Math.sqrt(dx * dx + dy * dy), 0f, 300f);
+            if (diceSwipeDistance > 12f) dragged = true;
+            lastX = x;
+            lastY = y;
+            return true;
+        }
         if (Math.abs(x - downX) + Math.abs(y - downY) > 12f) dragged = true;
         if (!dragged) return true;
 
@@ -704,10 +720,17 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean touchUp(int x, int y, int pointer, int button) {
-        float uiY = Gdx.graphics.getHeight() - y;
-        if (uiTouch) {
-            if (rollButton.contains(x, uiY) && !moveAnimating && diceRollTime <= 0f) rollDice();
-            uiTouch = false;
+        if (diceTouch) {
+            if (!moveAnimating && diceRollTime <= 0f) {
+                if (diceRolled && !allDiceUsed()) {
+                    status = "Use the current dice first";
+                    statusTimer = 1.0f;
+                } else {
+                    rollDice(diceSwipeDistance * 2.2f);
+                }
+            }
+            diceTouch = false;
+            dragged = false;
             return true;
         }
         if (!dragged) pickBoard(x, y);
