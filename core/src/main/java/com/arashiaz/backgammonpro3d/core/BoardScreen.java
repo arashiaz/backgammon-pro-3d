@@ -466,10 +466,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             models.add(bottom);
         }
 
-        // Shared checker meshes. 48 radial segments gives a smooth silhouette
-        // without excessive mobile geometry.
+        // Shared checker meshes. High radial resolution keeps the circular
+        // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = mb.createCylinder(
-                1.02f, 0.42f, 1.02f, 48,
+                1.00f, 0.42f, 1.00f, 64,
                 new Material(
                         ColorAttribute.createDiffuse(0.035f, 0.032f, 0.040f, 1f),
                         ColorAttribute.createSpecular(0.34f, 0.34f, 0.39f, 1f),
@@ -477,7 +477,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 attrs);
 
         lightChecker = mb.createCylinder(
-                1.02f, 0.42f, 1.02f, 48,
+                1.00f, 0.42f, 1.00f, 64,
                 new Material(
                         ColorAttribute.createDiffuse(0.88f, 0.78f, 0.57f, 1f),
                         ColorAttribute.createSpecular(0.55f, 0.49f, 0.38f, 1f),
@@ -485,7 +485,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 attrs);
 
         diceModel = mb.createBox(
-                1.28f, 1.28f, 1.28f,
+                1.22f, 1.22f, 1.22f,
                 new Material(
                         ColorAttribute.createDiffuse(0.94f, 0.92f, 0.84f, 1f),
                         ColorAttribute.createSpecular(0.72f, 0.68f, 0.58f, 1f),
@@ -493,7 +493,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 attrs);
 
         dieDotModel = mb.createCylinder(
-                0.20f, 0.035f, 0.20f, 20,
+                0.18f, 0.035f, 0.18f, 24,
                 new Material(
                         ColorAttribute.createDiffuse(0.035f, 0.032f, 0.028f, 1f),
                         ColorAttribute.createSpecular(0.12f, 0.12f, 0.12f, 1f),
@@ -503,7 +503,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Small gold center emblem/trim.
         accentModel = mb.createCylinder(
                 0.16f, 0.035f, 0.16f, 32,
-                wood(0.75f, 0.48f, 0.16f, 45f), attrs);
+                wood(0.78f, 0.50f, 0.17f, 52f), attrs);
         models.add(new ModelInstance(accentModel, 0f, 0.68f, 0f));
         rebuildGameObjects();
     }
@@ -512,11 +512,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         mb.begin();
         MeshPartBuilder p = mb.part("point", GL20.GL_TRIANGLES, attrs, material);
 
-        final float w = 0.54f;
+        final float w = 0.47f;
         final float y0 = 0f;
         final float y1 = 0.12f;
-        final float zBase = 2.0f;
-        final float zTip = -2.0f;
+        final float zBase = 2.02f;
+        final float zTip = -1.92f;
 
         Vector3 a0 = new Vector3(-w, y0, zBase);
         Vector3 b0 = new Vector3( w, y0, zBase);
@@ -546,7 +546,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void addTopPips(float x, float y, float z, int number) {
-        float d = 0.31f;
+        float d = 0.30f;
         if (number == 1 || number == 3 || number == 5) addPip(x, y, z);
         if (number >= 2) {
             addPip(x - d, y, z - d);
