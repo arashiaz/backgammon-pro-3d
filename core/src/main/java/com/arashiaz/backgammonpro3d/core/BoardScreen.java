@@ -70,6 +70,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private ModelInstance dieInstanceA, dieInstanceB;
     private float diceRollTime;
     private float diceRollElapsed;
+    private float lastDiceLiftA;
+    private float lastDiceLiftB;
     private int rollingFaceA = 1;
     private int rollingFaceB = 1;
     private ModelInstance movingPiece;
@@ -158,6 +160,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         dieUsed[0] = dieUsed[1] = false;
         diceRolled = true;
         diceRollElapsed = 0f;
+        lastDiceLiftA = 0f;
+        lastDiceLiftB = 0f;
         diceRollTime = 0.85f;
         selectedPoint = -1;
         clearMoveMarkers();
@@ -178,8 +182,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         dieInstanceB.transform.rotate(Vector3.Y, 12f);
         gameObjects.add(dieInstanceA); models.add(dieInstanceA);
         gameObjects.add(dieInstanceB); models.add(dieInstanceB);
-        if (dice[0] > 0) addTopPips(-1.55f, 1.72f, 0f, dice[0]);
-        if (dice[1] > 0) addTopPips( 1.55f, 1.72f, 0f, dice[1]);
+        // During the roll the cubes are intentionally clean: pips are added
+        // only after the final face is settled, so they never float while the
+        // cube spins. The final face is rebuilt atomically when the animation ends.
+        if (diceRollTime <= 0f) {
+            if (dice[0] > 0) addTopPips(-1.55f, 1.72f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 1.55f, 1.72f, 0f, dice[1]);
+        }
     }
 
     private void addStateStacks() {
@@ -569,14 +578,20 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             float spin = 1080f * delta;
             if (dieInstanceA != null) {
                 dieInstanceA.transform.rotate(Vector3.X, spin).rotate(Vector3.Y, spin * 0.65f);
-                dieInstanceA.transform.translate(0f, MathUtils.sin(diceRollElapsed * 24f) * delta * 2.2f, 0f);
+                float liftA = MathUtils.sin(diceRollElapsed * 24f) * 0.22f;
+                dieInstanceA.transform.translate(0f, liftA - lastDiceLiftA, 0f);
+                lastDiceLiftA = liftA;
             }
             if (dieInstanceB != null) {
                 dieInstanceB.transform.rotate(Vector3.X, -spin * 0.85f).rotate(Vector3.Z, spin);
-                dieInstanceB.transform.translate(0f, MathUtils.sin(diceRollElapsed * 27f + 0.8f) * delta * 2.2f, 0f);
+                float liftB = MathUtils.sin(diceRollElapsed * 27f + 0.8f) * 0.22f;
+                dieInstanceB.transform.translate(0f, liftB - lastDiceLiftB, 0f);
+                lastDiceLiftB = liftB;
             }
             if (diceRollTime <= 0f) {
                 diceRollElapsed = 0f;
+                lastDiceLiftA = 0f;
+                lastDiceLiftB = 0f;
                 rebuildGameObjects();
                 if (Gdx.input.isPeripheralAvailable(Input.Peripheral.Vibrator)) Gdx.input.vibrate(35);
             }
