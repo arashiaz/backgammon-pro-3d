@@ -472,16 +472,16 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.035f, 0.032f, 0.040f, 1f),
-                        ColorAttribute.createSpecular(0.34f, 0.34f, 0.39f, 1f),
-                        FloatAttribute.createShininess(55f)),
+                        ColorAttribute.createDiffuse(0.028f, 0.026f, 0.034f, 1f),
+                        ColorAttribute.createSpecular(0.46f, 0.46f, 0.52f, 1f),
+                        FloatAttribute.createShininess(68f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.88f, 0.78f, 0.57f, 1f),
-                        ColorAttribute.createSpecular(0.55f, 0.49f, 0.38f, 1f),
-                        FloatAttribute.createShininess(48f)),
+                        ColorAttribute.createDiffuse(0.90f, 0.80f, 0.60f, 1f),
+                        ColorAttribute.createSpecular(0.68f, 0.60f, 0.48f, 1f),
+                        FloatAttribute.createShininess(60f)),
                 attrs);
 
         diceModel = createBeveledDieModel(attrs);
@@ -565,9 +565,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         final int segments = 64;
         final float radius = 0.50f;
-        final float bevelRadius = 0.075f;
+        final float bevelRadius = 0.082f;
         final float half = 0.205f;
-        final float bevelY = 0.065f;
+        final float bevelY = 0.072f;
 
         for (int i = 0; i < segments; i++) {
             float a0 = MathUtils.PI2 * i / segments;
