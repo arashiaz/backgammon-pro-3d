@@ -61,6 +61,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model darkChecker, lightChecker;
     private Model diceModel, dieDotModel;
     private Model accentModel;
+    private Model diceTrayModel, screwModel;
 
     private float lastX, lastY;
     private boolean dragging;
@@ -202,8 +203,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // only after the final face is settled, so they never float while the
         // cube spins. The final face is rebuilt atomically when the animation ends.
         if (diceRollTime <= 0f) {
-            if (dice[0] > 0) addTopPips(-1.55f, 1.668f, 0f, dice[0]);
-            if (dice[1] > 0) addTopPips( 1.55f, 1.668f, 0f, dice[1]);
+            if (dice[0] > 0) addTopPips(-1.55f, 1.654f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 1.55f, 1.654f, 0f, dice[1]);
         }
     }
 
@@ -491,7 +492,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 attrs);
 
         dieDotModel = mb.createCylinder(
-                0.155f, 0.026f, 0.155f, 32,
+                0.145f, 0.022f, 0.145f, 32,
                 new Material(
                         ColorAttribute.createDiffuse(0.035f, 0.032f, 0.028f, 1f),
                         ColorAttribute.createSpecular(0.12f, 0.12f, 0.12f, 1f),
@@ -503,6 +504,28 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 0.16f, 0.035f, 0.16f, 32,
                 wood(0.78f, 0.50f, 0.17f, 52f), attrs);
         models.add(new ModelInstance(accentModel, 0f, 0.68f, 0f));
+
+        // Premium dice tray: a shallow inset surround makes the dice feel
+        // physically seated on the board instead of floating above it.
+        diceTrayModel = mb.createBox(
+                4.25f, 0.07f, 2.25f,
+                wood(0.12f, 0.045f, 0.018f, 26f), attrs);
+        models.add(new ModelInstance(diceTrayModel, 0f, 0.66f, 0f));
+
+        Model diceTrayInset = mb.createBox(
+                3.95f, 0.055f, 1.95f,
+                surface(0.28f, 0.12f, 0.035f), attrs);
+        models.add(new ModelInstance(diceTrayInset, 0f, 0.715f, 0f));
+
+        // Four small brass-like fasteners on the board corners.
+        screwModel = mb.createCylinder(
+                0.105f, 0.045f, 0.105f, 24,
+                wood(0.78f, 0.50f, 0.17f, 58f), attrs);
+        models.add(new ModelInstance(screwModel, -8.55f, 0.40f, -4.78f));
+        models.add(new ModelInstance(screwModel,  8.55f, 0.40f, -4.78f));
+        models.add(new ModelInstance(screwModel, -8.55f, 0.40f,  4.78f));
+        models.add(new ModelInstance(screwModel,  8.55f, 0.40f,  4.78f));
+
         rebuildGameObjects();
     }
 
@@ -590,7 +613,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void addTopPips(float x, float y, float z, int number) {
-        float d = 0.30f;
+        float d = 0.305f;
         if (number == 1 || number == 3 || number == 5) addPip(x, y, z);
         if (number >= 2) {
             addPip(x - d, y, z - d);
@@ -830,5 +853,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (diceModel != null) diceModel.dispose();
         if (dieDotModel != null) dieDotModel.dispose();
         if (accentModel != null) accentModel.dispose();
+        if (diceTrayModel != null) diceTrayModel.dispose();
+        if (screwModel != null) screwModel.dispose();
     }
 }
