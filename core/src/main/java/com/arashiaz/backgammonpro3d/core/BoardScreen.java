@@ -428,15 +428,23 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Texture createWoodTexture(int size) {
         Pixmap pix = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         for (int y = 0; y < size; y++) {
-            float grainLine = MathUtils.sin(y * 0.34f
-                    + MathUtils.sin(y * 0.026f) * 3.5f);
+            // Long, irregular walnut grain. The previous high-frequency bands
+            // looked like horizontal scan lines on the board; this version uses
+            // several low-frequency layers so the wood reads as a continuous,
+            // hand-finished surface.
+            float broad = MathUtils.sin(y * 0.055f
+                    + MathUtils.sin(y * 0.011f) * 2.6f);
             for (int x = 0; x < size; x++) {
-                float n = MathUtils.sin(x * 0.071f + y * 0.017f)
-                        + MathUtils.sin(x * 0.19f + y * 0.041f) * 0.35f;
-                float v = MathUtils.clamp(0.52f + grainLine * 0.13f + n * 0.055f, 0.08f, 0.92f);
-                float r = MathUtils.clamp(0.30f + v * 0.28f, 0f, 1f);
-                float g = MathUtils.clamp(0.12f + v * 0.16f, 0f, 1f);
-                float b = MathUtils.clamp(0.045f + v * 0.095f, 0f, 1f);
+                float streak = MathUtils.sin(y * 0.145f
+                        + MathUtils.sin(x * 0.021f) * 2.1f
+                        + MathUtils.sin(x * 0.006f + y * 0.012f) * 1.7f);
+                float fine = MathUtils.sin(x * 0.095f + y * 0.018f)
+                        + MathUtils.sin(x * 0.31f + y * 0.024f) * 0.22f;
+                float variation = broad * 0.085f + streak * 0.035f + fine * 0.018f;
+                float v = MathUtils.clamp(0.56f + variation, 0.18f, 0.86f);
+                float r = MathUtils.clamp(0.30f + v * 0.27f, 0f, 1f);
+                float g = MathUtils.clamp(0.105f + v * 0.145f, 0f, 1f);
+                float b = MathUtils.clamp(0.038f + v * 0.075f, 0f, 1f);
                 pix.drawPixel(x, y, Color.rgba8888(r, g, b, 1f));
             }
         }
