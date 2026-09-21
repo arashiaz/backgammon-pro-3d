@@ -444,7 +444,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
-        Material innerRailMat = wood(0.50f, 0.19f, 0.045f, 34f);
+        Material innerRailMat = wood(0.56f, 0.22f, 0.055f, 38f);
         Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
         Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
         models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
@@ -466,14 +466,14 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         Model barHighlight = mb.createBox(
                 0.16f, 0.045f, 8.55f,
-                wood(0.62f, 0.29f, 0.075f, 30f), attrs);
+                wood(0.72f, 0.35f, 0.095f, 34f), attrs);
         models.add(new ModelInstance(barHighlight, 0f, 0.61f, 0f));
 
         // Real flat triangular points, not cones.
         darkPointModel = createPointModel(
-                wood(0.17f, 0.045f, 0.025f, 20f), attrs, true);
+                wood(0.13f, 0.032f, 0.020f, 24f), attrs, true);
         lightPointModel = createPointModel(
-                wood(0.76f, 0.54f, 0.25f, 24f), attrs, false);
+                wood(0.82f, 0.60f, 0.29f, 28f), attrs, false);
 
         float[] xs = XS;
 
