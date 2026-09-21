@@ -538,12 +538,16 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             Vector3 botC0 = new Vector3(x0, -half, z0);
             Vector3 botC1 = new Vector3(x1, -half, z1);
 
-            p.quad(top0, topC0, topC1, top1);
-            p.quad(bot0, bot1, botC1, botC0);
+            p.triangle(top0, topC0, topC1);
+            p.triangle(top0, topC1, top1);
+            p.triangle(bot0, bot1, botC1);
+            p.triangle(bot0, botC1, botC0);
             p.triangle(new Vector3(0f, half + bevelY, 0f), top1, top0);
             p.triangle(new Vector3(0f, -half - bevelY, 0f), bot0, bot1);
-            p.quad(topC0, botC0, botC1, topC1);
-            p.quad(top0, top1, bot1, bot0);
+            p.triangle(topC0, botC0, botC1);
+            p.triangle(topC0, botC1, topC1);
+            p.triangle(top0, top1, bot1);
+            p.triangle(top0, bot1, bot0);
         }
         return mb.end();
     }
