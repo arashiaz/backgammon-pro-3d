@@ -77,6 +77,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private float diceRollElapsed;
     private float lastDiceLiftA;
     private float lastDiceLiftB;
+    private float diceSpinA;
+    private float diceSpinB;
     private int rollingFaceA = 1;
     private int rollingFaceB = 1;
     private ModelInstance movingPiece;
@@ -184,7 +186,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         lastDiceLiftA = 0f;
         lastDiceLiftB = 0f;
         diceThrowStrength = MathUtils.clamp(throwStrength, 0f, 650f);
-        diceRollTime = 0.85f;
+        diceSpinA = MathUtils.random(0f, 360f);
+        diceSpinB = MathUtils.random(0f, 360f);
+        diceRollTime = 0.95f;
         selectedPoint = -1;
         clearMoveMarkers();
         status = lightTurn ? "Light: choose a checker" : "Dark: choose a checker";
@@ -708,17 +712,25 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (diceRollTime > 0f) {
             diceRollElapsed += delta;
             diceRollTime = Math.max(0f, diceRollTime - delta);
-            float spin = (1080f + diceThrowStrength * 2.2f) * delta;
+            float progress = MathUtils.clamp(diceRollTime / 0.95f, 0f, 1f);
+            float spin = (1220f + diceThrowStrength * 2.8f) * delta * (0.45f + progress * 0.75f);
+            float settle = MathUtils.clamp(1f - diceRollTime / 0.95f, 0f, 1f);
+            float liftScale = MathUtils.sin(MathUtils.PI * settle);
+            float lateral = MathUtils.sin(diceRollElapsed * 11f) * (0.035f + diceThrowStrength * 0.00012f);
             if (dieInstanceA != null) {
                 dieInstanceA.transform.rotate(Vector3.X, spin).rotate(Vector3.Y, spin * 0.65f);
-                float liftA = MathUtils.sin(diceRollElapsed * 24f) * 0.22f;
-                dieInstanceA.transform.translate(0f, liftA - lastDiceLiftA, 0f);
+                dieInstanceA.transform.rotate(Vector3.Z, MathUtils.sin(diceRollElapsed * 17f) * 0.9f);
+                float liftA = liftScale * (0.34f + diceThrowStrength * 0.00032f);
+                float offsetA = lateral;
+                dieInstanceA.transform.translate(offsetA, liftA - lastDiceLiftA, -offsetA * 0.45f);
                 lastDiceLiftA = liftA;
             }
             if (dieInstanceB != null) {
                 dieInstanceB.transform.rotate(Vector3.X, -spin * 0.85f).rotate(Vector3.Z, spin);
-                float liftB = MathUtils.sin(diceRollElapsed * 27f + 0.8f) * 0.22f;
-                dieInstanceB.transform.translate(0f, liftB - lastDiceLiftB, 0f);
+                dieInstanceB.transform.rotate(Vector3.Y, MathUtils.cos(diceRollElapsed * 15f) * 0.85f);
+                float liftB = liftScale * (0.29f + diceThrowStrength * 0.00028f);
+                float offsetB = -lateral * 0.85f;
+                dieInstanceB.transform.translate(offsetB, liftB - lastDiceLiftB, offsetB * 0.40f);
                 lastDiceLiftB = liftB;
             }
             if (diceRollTime <= 0f) {
