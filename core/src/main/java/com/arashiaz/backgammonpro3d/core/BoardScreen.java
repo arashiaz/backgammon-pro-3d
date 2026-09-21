@@ -453,18 +453,18 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         playingSurfaceModel = mb.createBox(
                 18.35f, 0.34f, 9.95f,
-                woodTextured(0.72f, 0.61f, 0.50f, 26f), attrs);
+                wood(0.27f, 0.18f, 0.13f, 30f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
                 17.55f, 0.18f, 9.05f,
-                surface(0.075f, 0.060f, 0.050f), attrs);
+                surface(0.055f, 0.042f, 0.036f), attrs);
         models.add(new ModelInstance(felt, 0f, 0.27f, 0f));
 
         railModel = mb.createBox(
                 18.05f, 0.10f, 9.55f,
-                woodTextured(0.58f, 0.46f, 0.36f, 40f), attrs);
+                woodTextured(0.48f, 0.39f, 0.31f, 40f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
         Model innerMat = mb.createBox(
@@ -473,7 +473,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
-        Material innerRailMat = woodTextured(0.52f, 0.42f, 0.33f, 50f);
+        Material innerRailMat = woodTextured(0.46f, 0.37f, 0.29f, 50f);
         Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
         Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
         models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
@@ -504,11 +504,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Real flat triangular points, not cones.
         darkPointModel = createPointModel(
-                woodTextured(0.52f, 0.31f, 0.30f, 34f),
-                woodTextured(0.64f, 0.40f, 0.37f, 42f), attrs);
+                wood(0.28f, 0.095f, 0.075f, 34f),
+                wood(0.38f, 0.14f, 0.11f, 42f), attrs);
         lightPointModel = createPointModel(
-                woodTextured(0.78f, 0.69f, 0.57f, 34f),
-                woodTextured(0.88f, 0.80f, 0.67f, 44f), attrs);
+                wood(0.74f, 0.54f, 0.34f, 34f),
+                wood(0.88f, 0.69f, 0.43f, 44f), attrs);
 
         float[] xs = XS;
 
