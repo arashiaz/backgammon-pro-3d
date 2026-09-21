@@ -57,6 +57,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private final ModelBuilder mb = new ModelBuilder();
 
     private Model floorModel, baseModel, playingSurfaceModel, railModel, barModel;
+    private Model sideTrayModel, sideTrayInsetModel, hingePlateModel, medallionModel, medallionRingModel;
     private Model darkPointModel, lightPointModel;
     private Model darkChecker, lightChecker;
     private Model diceModel, dieDotModel;
@@ -216,8 +217,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // only after the final face is settled, so they never float while the
         // cube spins. The final face is rebuilt atomically when the animation ends.
         if (diceRollTime <= 0f) {
-            if (dice[0] > 0) addTopPips(-1.55f, 1.654f, 0f, dice[0]);
-            if (dice[1] > 0) addTopPips( 1.55f, 1.654f, 0f, dice[1]);
+            if (dice[0] > 0) addTopPips(-1.55f, 1.690f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 1.55f, 1.690f, 0f, dice[1]);
         }
     }
 
@@ -429,33 +430,33 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
-                18.6f, 0.72f, 10.7f,
-                wood(0.13f, 0.042f, 0.016f, 20f), attrs);
+                21.4f, 0.72f, 10.7f,
+                wood(0.105f, 0.030f, 0.012f, 24f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
         playingSurfaceModel = mb.createBox(
-                17.85f, 0.34f, 9.95f,
-                wood(0.24f, 0.072f, 0.022f, 18f), attrs);
+                18.35f, 0.34f, 9.95f,
+                wood(0.20f, 0.055f, 0.016f, 22f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
-                16.95f, 0.18f, 9.05f,
-                surface(0.31f, 0.125f, 0.040f), attrs);
+                17.55f, 0.18f, 9.05f,
+                surface(0.255f, 0.095f, 0.026f), attrs);
         models.add(new ModelInstance(felt, 0f, 0.27f, 0f));
 
         railModel = mb.createBox(
-                17.45f, 0.10f, 9.55f,
-                wood(0.48f, 0.16f, 0.038f, 32f), attrs);
+                18.05f, 0.10f, 9.55f,
+                wood(0.40f, 0.12f, 0.026f, 36f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
         Model innerMat = mb.createBox(
-                16.95f, 0.08f, 9.05f,
-                surface(0.285f, 0.105f, 0.030f), attrs);
+                17.55f, 0.08f, 9.05f,
+                surface(0.235f, 0.078f, 0.020f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
-        Material innerRailMat = wood(0.44f, 0.14f, 0.032f, 42f);
+        Material innerRailMat = wood(0.36f, 0.105f, 0.024f, 46f);
         Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
         Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
         models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
@@ -466,13 +467,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Subtle central divider shoulders, keeping the bar visually integrated.
         Model barShoulder = mb.createBox(
                 0.92f, 0.07f, 9.02f,
-                wood(0.26f, 0.075f, 0.020f, 26f), attrs);
+                wood(0.22f, 0.060f, 0.016f, 30f), attrs);
         models.add(new ModelInstance(barShoulder, 0f, 0.54f, 0f));
 
         // Central bar with a subtle raised center strip.
         barModel = mb.createBox(
                 0.72f, 0.22f, 8.95f,
-                wood(0.15f, 0.045f, 0.015f, 24f), attrs);
+                wood(0.12f, 0.034f, 0.012f, 28f), attrs);
         models.add(new ModelInstance(barModel, 0f, 0.48f, 0f));
 
         Model barHighlight = mb.createBox(
@@ -576,6 +577,54 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(trayTrimX, 0f, 0.79f,  1.00f));
         models.add(new ModelInstance(trayTrimZ, -2.00f, 0.79f, 0f));
         models.add(new ModelInstance(trayTrimZ,  2.00f, 0.79f, 0f));
+
+        // Deep side storage wells inspired by a real wooden backgammon case.
+        // They remain part of the board shell, so the playfield keeps its clean silhouette.
+        sideTrayModel = mb.createBox(
+                1.45f, 0.16f, 9.00f,
+                wood(0.095f, 0.028f, 0.012f, 24f), attrs);
+        sideTrayInsetModel = mb.createBox(
+                1.12f, 0.07f, 8.55f,
+                surface(0.055f, 0.018f, 0.010f), attrs);
+        models.add(new ModelInstance(sideTrayModel, -9.72f, 0.20f, 0f));
+        models.add(new ModelInstance(sideTrayModel,  9.72f, 0.20f, 0f));
+        models.add(new ModelInstance(sideTrayInsetModel, -9.72f, 0.31f, 0f));
+        models.add(new ModelInstance(sideTrayInsetModel,  9.72f, 0.31f, 0f));
+
+        // Thin walnut lips make the wells read as routed recesses.
+        Material trayLip = wood(0.30f, 0.080f, 0.018f, 38f);
+        Model trayLipX = mb.createBox(0.08f, 0.075f, 8.72f, trayLip, attrs);
+        models.add(new ModelInstance(trayLipX, -9.06f, 0.39f, 0f));
+        models.add(new ModelInstance(trayLipX, -10.38f, 0.39f, 0f));
+        models.add(new ModelInstance(trayLipX,  9.06f, 0.39f, 0f));
+        models.add(new ModelInstance(trayLipX, 10.38f, 0.39f, 0f));
+
+        // Decorative medallions on each half of the board.
+        medallionModel = mb.createCylinder(
+                0.43f, 0.035f, 0.43f, 48,
+                wood(0.30f, 0.095f, 0.022f, 48f), attrs);
+        medallionRingModel = mb.createCylinder(
+                0.31f, 0.045f, 0.31f, 48,
+                wood(0.72f, 0.46f, 0.15f, 58f), attrs);
+        models.add(new ModelInstance(medallionModel, -4.10f, 0.69f, 0f));
+        models.add(new ModelInstance(medallionModel,  4.10f, 0.69f, 0f));
+        models.add(new ModelInstance(medallionRingModel, -4.10f, 0.725f, 0f));
+        models.add(new ModelInstance(medallionRingModel,  4.10f, 0.725f, 0f));
+
+        // Center hinge plates and brass fasteners make the bar feel like a real case seam.
+        hingePlateModel = mb.createBox(
+                0.48f, 0.055f, 1.35f,
+                wood(0.58f, 0.34f, 0.10f, 62f), attrs);
+        models.add(new ModelInstance(hingePlateModel, 0f, 0.70f, -1.75f));
+        models.add(new ModelInstance(hingePlateModel, 0f, 0.70f,  1.75f));
+
+        Model hingeScrew = mb.createCylinder(
+                0.075f, 0.035f, 0.075f, 20,
+                wood(0.76f, 0.52f, 0.20f, 70f), attrs);
+        models.add(new ModelInstance(hingeScrew, -0.17f, 0.76f, -1.95f));
+        models.add(new ModelInstance(hingeScrew,  0.17f, 0.76f, -1.95f));
+        models.add(new ModelInstance(hingeScrew, -0.17f, 0.76f,  1.95f));
+        models.add(new ModelInstance(hingeScrew,  0.17f, 0.76f,  1.95f));
 
         // Four small brass-like fasteners on the board corners.
         screwModel = mb.createCylinder(
@@ -1009,5 +1058,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (diceTrayModel != null) diceTrayModel.dispose();
         if (diceEdgeModel != null) diceEdgeModel.dispose();
         if (screwModel != null) screwModel.dispose();
+        if (sideTrayModel != null) sideTrayModel.dispose();
+        if (sideTrayInsetModel != null) sideTrayInsetModel.dispose();
+        if (hingePlateModel != null) hingePlateModel.dispose();
+        if (medallionModel != null) medallionModel.dispose();
+        if (medallionRingModel != null) medallionRingModel.dispose();
     }
 }
