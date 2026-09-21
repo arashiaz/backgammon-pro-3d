@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.*;
 import com.badlogic.gdx.graphics.g3d.environment.*;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -21,6 +22,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
  * memory pressure on mobile GPUs.
  */
 public final class BoardScreen extends ScreenAdapter implements InputProcessor {
+    private static final float[] XS = {-7.05f, -5.75f, -4.45f, -3.15f, -1.85f, -0.55f,
+                                       0.55f,  1.85f,  3.15f,  4.45f,  5.75f,  7.05f};
     private final PerspectiveCamera camera = new PerspectiveCamera(38f, 1f, 1f);
     private final ModelBatch batch = new ModelBatch();
     private final Environment environment = new Environment();
@@ -169,7 +172,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             Model model = points[p] > 0 ? lightChecker : darkChecker;
             for (int i = 0; i < count; i++) {
                 int col = p < 12 ? p : 23 - p;
-                float x = xs[col];
+                float x = XS[col];
                 float z = p < 12 ? -3.30f + i * 0.43f : 3.30f - i * 0.43f;
                 ModelInstance piece = new ModelInstance(model, x, 0.78f + i * 0.425f, z);
                 gameObjects.add(piece); models.add(piece);
@@ -212,7 +215,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             if (canMoveWithDie(selectedPoint, to, dice[d])) {
                 int col = to < 12 ? to : 23 - to;
                 float z = to < 12 ? -3.25f : 3.25f;
-                ModelInstance marker = new ModelInstance(accentModel, xs[col], 0.68f, z);
+                ModelInstance marker = new ModelInstance(accentModel, XS[col], 0.68f, z);
                 moveMarkers.add(marker);
             }
         }
@@ -267,7 +270,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         float bestDistance = 1.05f;
         for (int p = 0; p < 24; p++) {
             int col = p < 12 ? p : 23 - p;
-            float px = xs[col];
+            float px = XS[col];
             float pz = p < 12 ? -3.25f : 3.25f;
             float distance = Vector2.dst(x, z, px, pz);
             if (distance < bestDistance) { bestDistance = distance; best = p; }
@@ -348,8 +351,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         lightPointModel = createPointModel(
                 wood(0.76f, 0.54f, 0.25f, 24f), attrs, false);
 
-        float[] xs = {-7.05f, -5.75f, -4.45f, -3.15f, -1.85f, -0.55f,
-                       0.55f,  1.85f,  3.15f,  4.45f,  5.75f,  7.05f};
+        float[] xs = XS;
 
         for (int i = 0; i < xs.length; i++) {
             boolean dark = (i % 2 == 0);
