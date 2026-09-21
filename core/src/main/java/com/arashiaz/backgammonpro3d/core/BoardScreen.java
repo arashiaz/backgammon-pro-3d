@@ -468,16 +468,14 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Shared checker meshes. High radial resolution keeps the circular
         // silhouette clean on modern phone displays while remaining lightweight.
-        darkChecker = mb.createCylinder(
-                1.00f, 0.42f, 1.00f, 64,
+        darkChecker = createBeveledCheckerModel(
                 new Material(
                         ColorAttribute.createDiffuse(0.035f, 0.032f, 0.040f, 1f),
                         ColorAttribute.createSpecular(0.34f, 0.34f, 0.39f, 1f),
                         FloatAttribute.createShininess(55f)),
                 attrs);
 
-        lightChecker = mb.createCylinder(
-                1.00f, 0.42f, 1.00f, 64,
+        lightChecker = createBeveledCheckerModel(
                 new Material(
                         ColorAttribute.createDiffuse(0.88f, 0.78f, 0.57f, 1f),
                         ColorAttribute.createSpecular(0.55f, 0.49f, 0.38f, 1f),
@@ -506,6 +504,46 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 wood(0.78f, 0.50f, 0.17f, 52f), attrs);
         models.add(new ModelInstance(accentModel, 0f, 0.68f, 0f));
         rebuildGameObjects();
+    }
+
+    private Model createBeveledCheckerModel(Material material, long attrs) {
+        mb.begin();
+        MeshPartBuilder p = mb.part("checker", GL20.GL_TRIANGLES, attrs, material);
+
+        final int segments = 64;
+        final float radius = 0.50f;
+        final float bevelRadius = 0.055f;
+        final float half = 0.21f;
+        final float bevelY = 0.26f;
+
+        for (int i = 0; i < segments; i++) {
+            float a0 = MathUtils.PI2 * i / segments;
+            float a1 = MathUtils.PI2 * (i + 1) / segments;
+            float x0 = MathUtils.cos(a0) * radius;
+            float z0 = MathUtils.sin(a0) * radius;
+            float x1 = MathUtils.cos(a1) * radius;
+            float z1 = MathUtils.sin(a1) * radius;
+
+            float bx0 = MathUtils.cos(a0) * (radius - bevelRadius);
+            float bz0 = MathUtils.sin(a0) * (radius - bevelRadius);
+            float bx1 = MathUtils.cos(a1) * (radius - bevelRadius);
+            float bz1 = MathUtils.sin(a1) * (radius - bevelRadius);
+
+            Vector3 top0 = new Vector3(bx0, half + bevelY, bz0);
+            Vector3 top1 = new Vector3(bx1, half + bevelY, bz1);
+            Vector3 topC0 = new Vector3(x0, half, z0);
+            Vector3 topC1 = new Vector3(x1, half, z1);
+            Vector3 bot0 = new Vector3(bx0, -half - bevelY, bz0);
+            Vector3 bot1 = new Vector3(bx1, -half - bevelY, bz1);
+            Vector3 botC0 = new Vector3(x0, -half, z0);
+            Vector3 botC1 = new Vector3(x1, -half, z1);
+
+            p.quad(top0, topC0, topC1, top1);
+            p.quad(bot0, bot1, botC1, botC0);
+            p.quad(topC0, botC0, botC1, topC1);
+            p.quad(top0, top1, bot1, bot0);
+        }
+        return mb.end();
     }
 
     private Model createPointModel(Material material, long attrs, boolean unused) {
