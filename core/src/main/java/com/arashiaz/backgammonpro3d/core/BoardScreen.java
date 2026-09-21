@@ -508,6 +508,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         ColorAttribute.createDiffuse(0.070f, 0.062f, 0.085f, 1f),
                         ColorAttribute.createSpecular(0.34f, 0.34f, 0.42f, 1f),
                         FloatAttribute.createShininess(82f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.050f, 0.044f, 0.058f, 1f),
+                        ColorAttribute.createSpecular(0.56f, 0.54f, 0.62f, 1f),
+                        FloatAttribute.createShininess(92f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(
@@ -519,6 +523,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         ColorAttribute.createDiffuse(0.72f, 0.57f, 0.34f, 1f),
                         ColorAttribute.createSpecular(0.58f, 0.46f, 0.28f, 1f),
                         FloatAttribute.createShininess(74f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.78f, 0.64f, 0.40f, 1f),
+                        ColorAttribute.createSpecular(0.76f, 0.64f, 0.40f, 1f),
+                        FloatAttribute.createShininess(88f)),
                 attrs);
 
         diceModel = createBeveledDieModel(attrs);
@@ -586,7 +594,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         p.triangle(a, c, d);
     }
 
-    private Model createBeveledCheckerModel(Material material, Material detailMaterial, long attrs) {
+    private Model createBeveledCheckerModel(Material material, Material detailMaterial, Material rimMaterial, long attrs) {
         mb.begin();
         MeshPartBuilder p = mb.part("checker", GL20.GL_TRIANGLES, attrs, material);
 
@@ -637,7 +645,25 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         addDisc(detail, 0.235f, detailY, 48);
         addRing(detail, 0.345f, 0.315f, detailY + 0.002f, 64);
 
+        // Thin circumferential bands catch the key light and make the bevel
+        // read as machined material rather than a flat cylinder.
+        MeshPartBuilder rim = mb.part("checker_rim", GL20.GL_TRIANGLES, attrs, rimMaterial);
+        addCylinderBand(rim, 0.503f, 0.150f, 0.174f, 64);
+        addCylinderBand(rim, 0.503f, -0.174f, -0.150f, 64);
+
         return mb.end();
+    }
+
+    private void addCylinderBand(MeshPartBuilder p, float radius, float y0, float y1, int segments) {
+        for (int i = 0; i < segments; i++) {
+            float a0 = MathUtils.PI2 * i / segments;
+            float a1 = MathUtils.PI2 * (i + 1) / segments;
+            Vector3 a = new Vector3(MathUtils.cos(a0) * radius, y0, MathUtils.sin(a0) * radius);
+            Vector3 b = new Vector3(MathUtils.cos(a1) * radius, y0, MathUtils.sin(a1) * radius);
+            Vector3 c = new Vector3(MathUtils.cos(a1) * radius, y1, MathUtils.sin(a1) * radius);
+            Vector3 d = new Vector3(MathUtils.cos(a0) * radius, y1, MathUtils.sin(a0) * radius);
+            triQuad(p, a, b, c, d);
+        }
     }
 
     private void addDisc(MeshPartBuilder p, float radius, float y, int segments) {
