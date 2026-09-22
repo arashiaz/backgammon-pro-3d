@@ -463,8 +463,16 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Material artworkMaterial = new Material(
                 TextureAttribute.createDiffuse(boardArtworkTexture),
                 ColorAttribute.createDiffuse(1f, 1f, 1f, 1f));
-        Model artworkModel = mb.createBox(17.55f, 0.045f, 9.05f, artworkMaterial, attrs);
-        models.add(new ModelInstance(artworkModel, 0f, 0.66f, 0f));
+        // A thin custom quad guarantees predictable 0..1 UVs on the visible top face.
+        // createBox's generated UV layout differs between faces and can stretch the artwork.
+        MeshPartBuilder artwork = mb.part("board_artwork", GL20.GL_TRIANGLES, attrs, artworkMaterial);
+        VertexInfo aa = new VertexInfo().set(new Vector3(-8.775f, 0.685f, -4.525f), Vector3.Y, null, new Vector2(0f, 0f));
+        VertexInfo ab = new VertexInfo().set(new Vector3( 8.775f, 0.685f, -4.525f), Vector3.Y, null, new Vector2(1f, 0f));
+        VertexInfo ac = new VertexInfo().set(new Vector3( 8.775f, 0.685f,  4.525f), Vector3.Y, null, new Vector2(1f, 1f));
+        VertexInfo ad = new VertexInfo().set(new Vector3(-8.775f, 0.685f,  4.525f), Vector3.Y, null, new Vector2(0f, 1f));
+        artwork.rect(aa, ab, ac, ad);
+        Model artworkModel = mb.end();
+        models.add(new ModelInstance(artworkModel));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
