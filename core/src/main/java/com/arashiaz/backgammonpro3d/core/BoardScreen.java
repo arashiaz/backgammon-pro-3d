@@ -98,7 +98,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         resetGameState();
 
         environment.set(new ColorAttribute(
-                ColorAttribute.AmbientLight, 0.46f, 0.45f, 0.43f, 1f));
+                ColorAttribute.AmbientLight, 0.50f, 0.50f, 0.48f, 1f));
         environment.add(new DirectionalLight().set(
                 0.92f, 0.86f, 0.74f, -0.55f, -1.0f, -0.35f));
         environment.add(new DirectionalLight().set(
@@ -452,28 +452,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 woodTextured(0.52f, 0.42f, 0.34f, 30f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
+        // Real walnut texture is used only for the wooden playing surface.
+        // The colored points remain independent flat materials so the grain can
+        // never tile across them or turn them into horizontal bands.
         playingSurfaceModel = mb.createBox(
                 18.35f, 0.34f, 9.95f,
-                wood(0.27f, 0.18f, 0.13f, 30f), attrs);
+                woodTextured(0.42f, 0.30f, 0.20f, 26f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
-
-        // Single artwork texture: the playing field is now one coherent surface,
-        // instead of many separately shaded procedural point meshes.
-        boardArtworkTexture = createBoardArtworkTexture();
-        Material artworkMaterial = new Material(
-                TextureAttribute.createDiffuse(boardArtworkTexture),
-                ColorAttribute.createDiffuse(1f, 1f, 1f, 1f));
-        // A thin custom quad guarantees predictable 0..1 UVs on the visible top face.
-        // createBox's generated UV layout differs between faces and can stretch the artwork.
-        mb.begin();
-        MeshPartBuilder artwork = mb.part("board_artwork", GL20.GL_TRIANGLES, attrs, artworkMaterial);
-        VertexInfo aa = new VertexInfo().set(new Vector3(-8.775f, 0.685f, -4.525f), Vector3.Y, null, new Vector2(0f, 0f));
-        VertexInfo ab = new VertexInfo().set(new Vector3( 8.775f, 0.685f, -4.525f), Vector3.Y, null, new Vector2(1f, 0f));
-        VertexInfo ac = new VertexInfo().set(new Vector3( 8.775f, 0.685f,  4.525f), Vector3.Y, null, new Vector2(1f, 1f));
-        VertexInfo ad = new VertexInfo().set(new Vector3(-8.775f, 0.685f,  4.525f), Vector3.Y, null, new Vector2(0f, 1f));
-        artwork.rect(aa, ab, ac, ad);
-        Model artworkModel = mb.end();
-        models.add(new ModelInstance(artworkModel));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
@@ -521,7 +506,27 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Model barCap = mb.createBox(0.28f, 0.035f, 8.35f, barCapMaterial, attrs);
         models.add(new ModelInstance(barCap, 0f, 0.665f, 0f));
 
-        // The points are baked into the single board artwork texture above.
+        // Classic flat points: no wood texture is applied to these meshes.
+        darkPointModel = createPointModel(
+                surface(0.29f, 0.145f, 0.067f),
+                surface(0.24f, 0.105f, 0.045f), attrs);
+        lightPointModel = createPointModel(
+                surface(0.85f, 0.76f, 0.63f),
+                surface(0.76f, 0.66f, 0.51f), attrs);
+
+        for (int i = 0; i < 12; i++) {
+            ModelInstance bottomPoint = new ModelInstance(
+                    (i % 2 == 0) ? darkPointModel : lightPointModel,
+                    XS[i], 0.55f, -2.55f);
+            bottomPoint.transform.rotate(Vector3.Y, 180f);
+            models.add(bottomPoint);
+
+            ModelInstance topPoint = new ModelInstance(
+                    (i % 2 == 0) ? lightPointModel : darkPointModel,
+                    XS[i], 0.55f, 2.55f);
+            models.add(topPoint);
+        }
+
         // Shared checker meshes. High radial resolution keeps the circular
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(
