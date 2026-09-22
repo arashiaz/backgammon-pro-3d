@@ -494,7 +494,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Material grainMaterial = new Material(
                 TextureAttribute.createDiffuse(proceduralWoodTexture),
                 ColorAttribute.createDiffuse(0.72f, 0.58f, 0.43f, 0.34f),
-                FloatAttribute.createSpecular(0.10f, 0.075f, 0.05f, 1f),
+                ColorAttribute.createSpecular(0.10f, 0.075f, 0.05f, 1f),
                 FloatAttribute.createShininess(22f));
         mb.begin();
         MeshPartBuilder grain = mb.part("natural_wood_grain", GL20.GL_TRIANGLES, attrs, grainMaterial);
