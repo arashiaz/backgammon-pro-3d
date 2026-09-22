@@ -539,9 +539,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 woodTextured(0.42f, 0.34f, 0.27f, 40f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
-        // One non-repeating 2D board artwork is used for the playing field.
-        // This replaces the procedural point meshes: the board face is one coherent
-        // illustration, while checkers and dice remain true 3D objects.
+        // The board artwork is a true 2D surface with explicit 0..1 UVs.
+        // Using a ModelBuilder box here distorted the artwork because LibGDX's
+        // generated box UVs are per-face. The custom plane keeps every triangle,
+        // border and medallion at its intended proportions.
         boardArtworkTexture = createBoardArtworkTexture();
         Material boardArtworkMaterial = new Material(
                 TextureAttribute.createDiffuse(boardArtworkTexture),
@@ -550,8 +551,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 FloatAttribute.createShininess(22f));
         Model innerMat = mb.createBox(
                 17.55f, 0.08f, 9.05f,
-                boardArtworkMaterial, attrs);
+                surface(0.050f, 0.035f, 0.025f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
+        Model artworkPlane = createArtworkPlane(boardArtworkMaterial, attrs);
+        models.add(new ModelInstance(artworkPlane, 0f, 0.458f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
         Material innerRailMat = woodTextured(0.46f, 0.37f, 0.29f, 50f);
@@ -822,6 +825,24 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             p.triangle(o0, o1, in0);
             p.triangle(o1, in1, in0);
         }
+    }
+
+    private Model createArtworkPlane(Material material, long attrs) {
+        mb.begin();
+        MeshPartBuilder p = mb.part("board_artwork", GL20.GL_TRIANGLES, attrs, material);
+        float hx = 8.775f;
+        float hz = 4.525f;
+        VertexInfo a = new VertexInfo().set(
+                new Vector3(-hx, 0f, -hz), Vector3.Y, null, new Vector2(0f, 1f));
+        VertexInfo b = new VertexInfo().set(
+                new Vector3( hx, 0f, -hz), Vector3.Y, null, new Vector2(1f, 1f));
+        VertexInfo c = new VertexInfo().set(
+                new Vector3( hx, 0f,  hz), Vector3.Y, null, new Vector2(1f, 0f));
+        VertexInfo d = new VertexInfo().set(
+                new Vector3(-hx, 0f,  hz), Vector3.Y, null, new Vector2(0f, 0f));
+        p.triangle(a, b, c);
+        p.triangle(a, c, d);
+        return mb.end();
     }
 
     private Texture createBoardArtworkTexture() {
