@@ -746,14 +746,68 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Model createBeveledDieModel(Texture texture, long attrs) {
-        // Keep the die body geometrically robust on mobile GPUs. The previous
-        // hand-built chamfer mesh exposed gaps and read like stacked plates;
-        // this clean rounded-looking cube is paired with smaller inset pips.
+        // Low-cost premium die: an octagonal rounded-rectangle profile with
+        // real bevel bands on every edge. This reads much closer to molded
+        // ivory/resin than a sharp LibGDX box while remaining mobile-friendly.
         Material m = new Material(
                 TextureAttribute.createDiffuse(texture),
-                ColorAttribute.createSpecular(0.70f, 0.66f, 0.56f, 1f),
-                FloatAttribute.createShininess(68f));
-        return mb.createBox(0.76f, 0.76f, 0.76f, m, attrs);
+                ColorAttribute.createSpecular(0.78f, 0.70f, 0.56f, 1f),
+                FloatAttribute.createShininess(92f));
+
+        final float half = 0.38f;
+        final float inset = 0.055f;
+        final float bevelY = 0.065f;
+
+        // Eight perimeter points: chamfered corners prevent razor-sharp cube
+        // corners without the vertex cost of a full rounded-cube subdivision.
+        float[][] outline = {
+                {-half + inset, -half}, { half - inset, -half},
+                { half, -half + inset}, { half,  half - inset},
+                { half - inset,  half}, {-half + inset,  half},
+                {-half,  half - inset}, {-half, -half + inset}
+        };
+
+        mb.begin();
+
+        MeshPartBuilder body = mb.part("die_body", GL20.GL_TRIANGLES, attrs, m);
+
+        Vector3[] top = new Vector3[8];
+        Vector3[] topBevel = new Vector3[8];
+        Vector3[] bottomBevel = new Vector3[8];
+        Vector3[] bottom = new Vector3[8];
+
+        for (int i = 0; i < 8; i++) {
+            float x = outline[i][0];
+            float z = outline[i][1];
+            float sx = MathUtils.clamp(x, -half + inset, half - inset);
+            float sz = MathUtils.clamp(z, -half + inset, half - inset);
+
+            top[i] = new Vector3(x * 0.84f, half, z * 0.84f);
+            topBevel[i] = new Vector3(x, half - bevelY, z);
+            bottomBevel[i] = new Vector3(x, -half + bevelY, z);
+            bottom[i] = new Vector3(x * 0.84f, -half, z * 0.84f);
+        }
+
+        // Top and bottom caps.
+        for (int i = 1; i < 7; i++) {
+            body.triangle(top[0], top[i], top[i + 1]);
+            body.triangle(bottom[0], bottom[i + 1], bottom[i]);
+        }
+
+        // Four bevel bands plus four straight side bands.
+        for (int i = 0; i < 8; i++) {
+            int j = (i + 1) % 8;
+            body.triangle(top[i], topBevel[i], topBevel[j]);
+            body.triangle(top[i], topBevel[j], top[j]);
+
+            body.triangle(topBevel[i], bottomBevel[i], bottomBevel[j]);
+            body.triangle(topBevel[i], bottomBevel[j], topBevel[j]);
+
+            body.triangle(bottomBevel[i], bottom[i], bottom[j]);
+            body.triangle(bottomBevel[i], bottom[j], bottomBevel[j]);
+        }
+
+        return mb.end();
     }
 
     private void triQuad(MeshPartBuilder p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) {
