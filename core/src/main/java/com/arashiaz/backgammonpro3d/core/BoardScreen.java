@@ -111,7 +111,14 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         environment.add(new DirectionalLight().set(
                 0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
 
-        woodGrainTexture = createNaturalWoodTexture(512);
+        woodGrainTexture = new Texture(
+                Gdx.files.internal("textures/board_wood_texture.jpg"), true);
+        woodGrainTexture.setFilter(
+                Texture.TextureFilter.MipMapLinearLinear,
+                Texture.TextureFilter.Linear);
+        woodGrainTexture.setWrap(
+                Texture.TextureWrap.Repeat,
+                Texture.TextureWrap.Repeat);
         buildBoard();
         updateCamera();
     }
