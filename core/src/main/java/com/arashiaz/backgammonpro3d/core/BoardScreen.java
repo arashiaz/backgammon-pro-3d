@@ -70,7 +70,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private boolean dragging;
     private float cameraAzimuth = 0f;
     private float cameraElevation = 55f;
-    private float cameraDistance = 15.8f;
+    private float cameraDistance = 18.2f;
 
     private final Vector3 cameraTarget = new Vector3(0f, 0.25f, 0f);
     private final Vector3 tmp = new Vector3();
@@ -113,8 +113,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         woodGrainTexture.setWrap(
                 Texture.TextureWrap.Repeat,
                 Texture.TextureWrap.Repeat);
-        lightCheckerTexture = createPieceTexture(256, 0.90f, 0.72f, 0.42f, 0.98f, 0.88f, 0.62f, 101L);
-        darkCheckerTexture = createPieceTexture(256, 0.16f, 0.075f, 0.045f, 0.42f, 0.20f, 0.12f, 202L);
+        lightCheckerTexture = createPieceTexture(256, 0.86f, 0.80f, 0.67f, 0.99f, 0.96f, 0.84f, 101L);
+        darkCheckerTexture = createPieceTexture(256, 0.10f, 0.045f, 0.028f, 0.30f, 0.14f, 0.075f, 202L);
         diceTexture = createPieceTexture(256, 0.86f, 0.78f, 0.62f, 0.96f, 0.88f, 0.72f, 303L);
         buildBoard();
         updateCamera();
@@ -641,11 +641,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         lightChecker = createBeveledCheckerModel(lightCheckerTexture,
                 new Material(
-                        ColorAttribute.createDiffuse(0.90f, 0.84f, 0.72f, 1f),
+                        ColorAttribute.createDiffuse(0.88f, 0.83f, 0.73f, 1f),
                         ColorAttribute.createSpecular(0.72f, 0.66f, 0.55f, 1f),
                         FloatAttribute.createShininess(78f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.99f, 0.94f, 0.82f, 1f),
+                        ColorAttribute.createDiffuse(0.98f, 0.94f, 0.84f, 1f),
                         ColorAttribute.createSpecular(0.84f, 0.76f, 0.60f, 1f),
                         FloatAttribute.createShininess(96f)),
                 new Material(
@@ -1058,7 +1058,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         camera.lookAt(cameraTarget);
         camera.up.set(Vector3.Y);
-        camera.fieldOfView = 28f;
+        camera.fieldOfView = 30f;
         camera.near = 0.1f;
         camera.far = 100f;
         camera.update();
