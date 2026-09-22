@@ -405,6 +405,31 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
     }
 
+    private float smoothNoise(float x, float y) {
+        int x0 = MathUtils.floor(x);
+        int y0 = MathUtils.floor(y);
+        float fx = x - x0;
+        float fy = y - y0;
+        fx = fx * fx * (3f - 2f * fx);
+        fy = fy * fy * (3f - 2f * fy);
+
+        float n00 = hashNoise(x0, y0);
+        float n10 = hashNoise(x0 + 1, y0);
+        float n01 = hashNoise(x0, y0 + 1);
+        float n11 = hashNoise(x0 + 1, y0 + 1);
+
+        float nx0 = MathUtils.lerp(n00, n10, fx);
+        float nx1 = MathUtils.lerp(n01, n11, fx);
+        return MathUtils.lerp(nx0, nx1, fy);
+    }
+
+    private float hashNoise(int x, int y) {
+        int n = x * 374761393 + y * 668265263;
+        n = (n ^ (n >>> 13)) * 1274126177;
+        n ^= (n >>> 16);
+        return (n & 0x7fffffff) / 2147483647f;
+    }
+
     private Texture createNaturalWoodTexture(int size) {
         // Mobile-safe procedural walnut: irregular broad grain, soft pores and
         // warped growth lines. No periodic sine bands, so the board reads as
@@ -424,8 +449,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
                 float grain = MathUtils.lerp(broad, medium, 0.38f);
                 float value = 0.82f
-                        + (grain - 0.5f) * 0.28f
-                        + (pore - 0.5f) * 0.055f;
+                        + (grain - 0.5f) * 0.16f
+                        + (pore - 0.5f) * 0.025f;
 
                 // Gentle warm walnut variation rather than orange plastic.
                 float r = MathUtils.clamp(0.37f * value, 0f, 1f);
@@ -552,20 +577,20 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Classic flat points: no wood texture is applied to these meshes.
         darkPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.28f, 0.14f, 0.07f, 1f),
+                        ColorAttribute.createDiffuse(0.30f, 0.16f, 0.085f, 1f),
                         ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
                         FloatAttribute.createShininess(8f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.23f, 0.105f, 0.045f, 1f),
+                        ColorAttribute.createDiffuse(0.255f, 0.125f, 0.055f, 1f),
                         ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
                         FloatAttribute.createShininess(6f)), attrs);
         lightPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.62f, 0.50f, 0.36f, 1f),
+                        ColorAttribute.createDiffuse(0.78f, 0.66f, 0.46f, 1f),
                         ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
                         FloatAttribute.createShininess(8f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.54f, 0.42f, 0.29f, 1f),
+                        ColorAttribute.createDiffuse(0.64f, 0.50f, 0.31f, 1f),
                         ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
                         FloatAttribute.createShininess(6f)), attrs);
 
