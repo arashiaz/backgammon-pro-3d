@@ -504,7 +504,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void buildBoard() {
-        final long attrs = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
+        final long attrs = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates;
 
         // A dark furniture-like floor grounds the board in the scene instead
         // of leaving it floating against a flat black background.
