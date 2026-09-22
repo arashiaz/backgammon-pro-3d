@@ -407,31 +407,69 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Texture createNaturalWoodTexture(int size) {
+        // Soft, irregular walnut grain: low-frequency noise + gently warped
+        // directional fibers. No periodic sine bands, so the surface does not
+        // turn into horizontal/vertical stripes.
         Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         for (int y = 0; y < size; y++) {
             float v = y / (float)(size - 1);
             for (int x = 0; x < size; x++) {
                 float u = x / (float)(size - 1);
-                float warp = 0.10f * (float)Math.sin(v * 10.0f + 1.7f * Math.sin(u * 7.0f));
-                float grain = (float)Math.sin(u * 34.0f + warp * 16.0f
-                        + 0.55f * Math.sin(u * 83.0f + v * 6.0f));
-                float broad = (float)Math.sin(u * 8.0f + v * 2.4f
-                        + 0.9f * Math.sin(v * 5.0f));
-                float n = 0.5f + 0.5f * grain;
-                float b = 0.5f + 0.5f * broad;
-                float value = 0.86f + n * 0.08f + b * 0.06f;
+
+                float warp = (smoothNoise(u * 3.2f, v * 3.2f) - 0.5f) * 0.34f;
+                float fiberPos = u * 7.0f + warp
+                        + (smoothNoise(u * 12.0f, v * 2.5f) - 0.5f) * 0.22f;
+
+                float broad = smoothNoise(fiberPos * 2.2f, v * 1.8f);
+                float fine = smoothNoise(fiberPos * 10.0f, v * 8.0f);
+                float pores = smoothNoise(u * 34.0f, v * 12.0f);
+
+                float value = 0.88f
+                        + (broad - 0.5f) * 0.18f
+                        + (fine - 0.5f) * 0.07f
+                        + (pores - 0.5f) * 0.035f;
+
                 float r = MathUtils.clamp(0.34f * value, 0f, 1f);
-                float g = MathUtils.clamp(0.19f * value, 0f, 1f);
-                float bl = MathUtils.clamp(0.095f * value, 0f, 1f);
-                pm.setColor(r, g, bl, 1f);
+                float g = MathUtils.clamp(0.185f * value, 0f, 1f);
+                float b = MathUtils.clamp(0.090f * value, 0f, 1f);
+
+                pm.setColor(r, g, b, 1f);
                 pm.drawPixel(x, y);
             }
         }
+
         Texture t = new Texture(pm, true);
         t.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
         t.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
         pm.dispose();
         return t;
+    }
+
+    private float smoothNoise(float x, float y) {
+        int x0 = MathUtils.floor(x);
+        int y0 = MathUtils.floor(y);
+        float tx = x - x0;
+        float ty = y - y0;
+
+        tx = tx * tx * (3f - 2f * tx);
+        ty = ty * ty * (3f - 2f * ty);
+
+        float a = hashNoise(x0, y0);
+        float b = hashNoise(x0 + 1, y0);
+        float c = hashNoise(x0, y0 + 1);
+        float d = hashNoise(x0 + 1, y0 + 1);
+
+        return MathUtils.lerp(
+                MathUtils.lerp(a, b, tx),
+                MathUtils.lerp(c, d, tx),
+                ty);
+    }
+
+    private float hashNoise(int x, int y) {
+        int h = x * 374761393 + y * 668265263;
+        h = (h ^ (h >>> 13)) * 1274126177;
+        h ^= (h >>> 16);
+        return (h & 0x7fffffff) / 2147483647f;
     }
 
     private Material wood(float r, float g, float b, float shine) {
@@ -493,7 +531,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         Material grainMaterial = new Material(
                 TextureAttribute.createDiffuse(proceduralWoodTexture),
-                ColorAttribute.createDiffuse(0.72f, 0.58f, 0.43f, 0.34f),
+                ColorAttribute.createDiffuse(1f, 1f, 1f, 1f),
                 ColorAttribute.createSpecular(0.10f, 0.075f, 0.05f, 1f),
                 FloatAttribute.createShininess(22f));
         mb.begin();
