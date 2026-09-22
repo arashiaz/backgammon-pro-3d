@@ -22,8 +22,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
  * Geometry remains reusable to keep draw calls and mobile GPU memory under control.
  */
 public final class BoardScreen extends ScreenAdapter implements InputProcessor {
-    private static final float[] XS = {-7.05f, -5.75f, -4.45f, -3.15f, -1.85f, -0.55f,
-                                       0.55f,  1.85f,  3.15f,  4.45f,  5.75f,  7.05f};
+    private static final float[] XS = {-5.775f, -4.725f, -3.675f, -2.625f, -1.575f, -0.525f,
+                                       0.525f,  1.575f,  2.625f,  3.675f,  4.725f,  5.775f};
     private final PerspectiveCamera camera = new PerspectiveCamera(38f, 1f, 1f);
     private final ModelBatch batch = new ModelBatch();
     private final Environment environment = new Environment();
@@ -70,8 +70,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private float lastX, lastY;
     private boolean dragging;
     private float cameraAzimuth = 0f;
-    private float cameraElevation = 80f;
-    private float cameraDistance = 19.5f;
+    private float cameraElevation = 55f;
+    private float cameraDistance = 15.8f;
 
     private final Vector3 cameraTarget = new Vector3(0f, 0.25f, 0f);
     private final Vector3 tmp = new Vector3();
@@ -120,9 +120,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         woodGrainTexture.setWrap(
                 Texture.TextureWrap.Repeat,
                 Texture.TextureWrap.Repeat);
-        lightCheckerTexture = createPieceTexture(256, 0.86f, 0.78f, 0.60f, 0.54f, 0.42f, 0.25f, 101L);
-        darkCheckerTexture = createPieceTexture(256, 0.12f, 0.055f, 0.032f, 0.30f, 0.14f, 0.065f, 202L);
-        diceTexture = createPieceTexture(256, 0.92f, 0.88f, 0.76f, 0.72f, 0.62f, 0.45f, 303L);
+        lightCheckerTexture = createPieceTexture(256, 0.88f, 0.68f, 0.34f, 0.98f, 0.86f, 0.54f, 101L);
+        darkCheckerTexture = createPieceTexture(256, 0.16f, 0.075f, 0.045f, 0.42f, 0.20f, 0.12f, 202L);
+        diceTexture = createPieceTexture(256, 0.86f, 0.78f, 0.62f, 0.96f, 0.88f, 0.72f, 303L);
         buildBoard();
         updateCamera();
     }
@@ -178,7 +178,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private boolean hitDie(int screenX, int screenY) {
         Ray ray = camera.getPickRay(screenX, screenY);
-        Plane plane = new Plane(Vector3.Y, 1.06f);
+        Plane plane = new Plane(Vector3.Y, 0.46f);
         if (!Intersector.intersectRayPlane(ray, plane, tmp)) return false;
         return (tmp.x + 1.55f) * (tmp.x + 1.55f) + tmp.z * tmp.z < 1.15f * 1.15f
                 || (tmp.x - 1.55f) * (tmp.x - 1.55f) + tmp.z * tmp.z < 1.15f * 1.15f;
@@ -220,8 +220,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         addStateStacks();
 
-        dieInstanceA = new ModelInstance(diceModel, -1.55f, 1.06f, 0f);
-        dieInstanceB = new ModelInstance(diceModel,  1.55f, 1.06f, 0f);
+        dieInstanceA = new ModelInstance(diceModel, -0.48f, 0.86f, 0f);
+        dieInstanceB = new ModelInstance(diceModel,  0.48f, 0.86f, 0f);
         dieInstanceA.transform.rotate(Vector3.Y, -9f);
         dieInstanceB.transform.rotate(Vector3.Y, 12f);
         gameObjects.add(dieInstanceA); models.add(dieInstanceA);
@@ -230,8 +230,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // only after the final face is settled, so they never float while the
         // cube spins. The final face is rebuilt atomically when the animation ends.
         if (diceRollTime <= 0f) {
-            if (dice[0] > 0) addTopPips(-1.55f, 1.615f, 0f, dice[0]);
-            if (dice[1] > 0) addTopPips( 1.55f, 1.615f, 0f, dice[1]);
+            if (dice[0] > 0) addTopPips(-0.48f, 1.245f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 0.48f, 1.245f, 0f, dice[1]);
         }
     }
 
@@ -243,8 +243,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             for (int i = 0; i < count; i++) {
                 int col = p < 12 ? p : 23 - p;
                 float x = XS[col];
-                float z = p < 12 ? -3.30f + i * 0.43f : 3.30f - i * 0.43f;
-                ModelInstance piece = new ModelInstance(model, x, 0.78f + i * 0.425f, z);
+                float z = p < 12 ? -2.92f + i * 0.22f : 2.92f - i * 0.22f;
+                ModelInstance piece = new ModelInstance(model, x, 0.58f + i * 0.22f, z);
                 gameObjects.add(piece); models.add(piece);
             }
         }
@@ -341,7 +341,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             int to = lightTurn ? selectedPoint + dice[d] : selectedPoint - dice[d];
             if (canMoveWithDie(selectedPoint, to, dice[d])) {
                 int col = to < 12 ? to : 23 - to;
-                float z = to < 12 ? -3.25f : 3.25f;
+                float z = to < 12 ? -2.82f : 2.82f;
                 ModelInstance marker = new ModelInstance(accentModel, XS[col], 0.68f, z);
                 moveMarkers.add(marker);
             }
@@ -549,77 +549,77 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // A dark furniture-like floor grounds the board in the scene instead
         // of leaving it floating against a flat black background.
         floorModel = mb.createBox(
-                28.0f, 0.10f, 19.0f,
+                20.0f, 0.10f, 12.0f,
                 surface(0.018f, 0.022f, 0.028f), attrs);
         models.add(new ModelInstance(floorModel, 0f, -0.84f, 0f));
 
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
-                21.4f, 0.72f, 10.7f,
-                woodTextured(0.52f, 0.42f, 0.34f, 30f), attrs);
-        models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
+                14.8f, 0.64f, 8.6f,
+                woodTextured(0.46f, 0.25f, 0.17f, 34f), attrs);
+        models.add(new ModelInstance(baseModel, 0f, -0.02f, 0f));
 
         // Single clean playfield: one solid top surface avoids layered
         // coplanar/intersecting panels that can create mobile depth artifacts.
         playingSurfaceModel = mb.createBox(
-                17.72f, 0.20f, 9.12f,
-                surface(0.19f, 0.34f, 0.32f), attrs);
-        models.add(new ModelInstance(playingSurfaceModel, 0f, 0.36f, 0f));
+                12.70f, 0.18f, 7.60f,
+                surface(0.40f, 0.28f, 0.18f), attrs);
+        models.add(new ModelInstance(playingSurfaceModel, 0f, 0.38f, 0f));
 
         // No overlay rail over the playfield. Keeping the playing surface as
         // one visible mesh prevents the repeated-line artifact seen on mobile.
 
         // Subtle central divider shoulders, keeping the bar visually integrated.
         Model barShoulder = mb.createBox(
-                0.92f, 0.07f, 9.02f,
+                0.86f, 0.07f, 7.48f,
                 wood(0.22f, 0.060f, 0.016f, 30f), attrs);
         models.add(new ModelInstance(barShoulder, 0f, 0.56f, 0f));
 
         // Central bar with a subtle raised center strip.
         barModel = mb.createBox(
-                0.72f, 0.22f, 8.95f,
-                wood(0.12f, 0.034f, 0.012f, 28f), attrs);
+                0.82f, 0.22f, 7.42f,
+                wood(0.20f, 0.055f, 0.025f, 34f), attrs);
         models.add(new ModelInstance(barModel, 0f, 0.54f, 0f));
 
         Model barHighlight = mb.createBox(
-                0.16f, 0.045f, 8.55f,
+                0.12f, 0.045f, 7.10f,
                 wood(0.58f, 0.22f, 0.050f, 40f), attrs);
         models.add(new ModelInstance(barHighlight, 0f, 0.67f, 0f));
 
         Material barCapMaterial = wood(0.34f, 0.11f, 0.022f, 46f);
-        Model barCap = mb.createBox(0.28f, 0.035f, 8.35f, barCapMaterial, attrs);
+        Model barCap = mb.createBox(0.24f, 0.035f, 6.95f, barCapMaterial, attrs);
         models.add(new ModelInstance(barCap, 0f, 0.725f, 0f));
 
         // Classic flat points: no wood texture is applied to these meshes.
         darkPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.055f, 0.12f, 0.18f, 1f),
+                        ColorAttribute.createDiffuse(0.33f, 0.10f, 0.14f, 1f),
                         ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
                         FloatAttribute.createShininess(8f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.045f, 0.095f, 0.145f, 1f),
+                        ColorAttribute.createDiffuse(0.22f, 0.055f, 0.075f, 1f),
                         ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
                         FloatAttribute.createShininess(6f)), attrs);
         lightPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.88f, 0.84f, 0.70f, 1f),
+                        ColorAttribute.createDiffuse(0.88f, 0.79f, 0.62f, 1f),
                         ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
                         FloatAttribute.createShininess(8f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.76f, 0.70f, 0.54f, 1f),
+                        ColorAttribute.createDiffuse(0.72f, 0.57f, 0.38f, 1f),
                         ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
                         FloatAttribute.createShininess(6f)), attrs);
 
         for (int i = 0; i < 12; i++) {
             ModelInstance bottomPoint = new ModelInstance(
                     (i % 2 == 0) ? darkPointModel : lightPointModel,
-                    XS[i], 0.55f, -2.55f);
+                    XS[i], 0.50f, -2.18f);
             bottomPoint.transform.rotate(Vector3.Y, 180f);
             models.add(bottomPoint);
 
             ModelInstance topPoint = new ModelInstance(
                     (i % 2 == 0) ? lightPointModel : darkPointModel,
-                    XS[i], 0.55f, 2.55f);
+                    XS[i], 0.50f, 2.18f);
             models.add(topPoint);
         }
 
@@ -657,7 +657,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         diceModel = createBeveledDieModel(diceTexture, attrs);
         dieDotModel = mb.createCylinder(
-                0.105f, 0.020f, 0.105f, 32,
+                0.072f, 0.016f, 0.072f, 32,
                 new Material(
                         ColorAttribute.createDiffuse(0.035f, 0.032f, 0.028f, 1f),
                         ColorAttribute.createSpecular(0.12f, 0.12f, 0.12f, 1f),
@@ -673,45 +673,45 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Premium dice tray: a shallow inset surround makes the dice feel
         // physically seated on the board instead of floating above it.
         diceTrayModel = mb.createBox(
-                4.25f, 0.07f, 2.25f,
+                2.55f, 0.07f, 1.55f,
                 wood(0.12f, 0.045f, 0.018f, 26f), attrs);
         models.add(new ModelInstance(diceTrayModel, 0f, 0.66f, 0f));
 
         Model diceTrayInset = mb.createBox(
-                3.95f, 0.055f, 1.95f,
-                surface(0.19f, 0.060f, 0.018f), attrs);
+                2.30f, 0.055f, 1.25f,
+                surface(0.18f, 0.055f, 0.025f), attrs);
         models.add(new ModelInstance(diceTrayInset, 0f, 0.715f, 0f));
 
         // Raised brass trim around the dice well gives the center a crafted,
         // furniture-like finish while keeping the dice area visually clean.
         Material trayTrim = wood(0.66f, 0.34f, 0.075f, 48f);
-        Model trayTrimX = mb.createBox(4.05f, 0.045f, 0.075f, trayTrim, attrs);
-        Model trayTrimZ = mb.createBox(0.075f, 0.045f, 1.95f, trayTrim, attrs);
-        models.add(new ModelInstance(trayTrimX, 0f, 0.79f, -1.00f));
-        models.add(new ModelInstance(trayTrimX, 0f, 0.79f,  1.00f));
-        models.add(new ModelInstance(trayTrimZ, -2.00f, 0.79f, 0f));
-        models.add(new ModelInstance(trayTrimZ,  2.00f, 0.79f, 0f));
+        Model trayTrimX = mb.createBox(2.38f, 0.045f, 0.06f, trayTrim, attrs);
+        Model trayTrimZ = mb.createBox(0.06f, 0.045f, 1.25f, trayTrim, attrs);
+        models.add(new ModelInstance(trayTrimX, 0f, 0.79f, -0.64f));
+        models.add(new ModelInstance(trayTrimX, 0f, 0.79f,  0.64f));
+        models.add(new ModelInstance(trayTrimZ, -1.19f, 0.79f, 0f));
+        models.add(new ModelInstance(trayTrimZ,  1.19f, 0.79f, 0f));
 
         // Deep side storage wells inspired by a real wooden backgammon case.
         // They remain part of the board shell, so the playfield keeps its clean silhouette.
         sideTrayModel = mb.createBox(
-                1.45f, 0.16f, 9.00f,
+                0.72f, 0.16f, 7.70f,
                 woodTextured(0.38f, 0.31f, 0.25f, 28f), attrs);
         sideTrayInsetModel = mb.createBox(
-                1.12f, 0.07f, 8.55f,
+                0.50f, 0.07f, 7.25f,
                 surface(0.055f, 0.018f, 0.010f), attrs);
-        models.add(new ModelInstance(sideTrayModel, -9.72f, 0.20f, 0f));
-        models.add(new ModelInstance(sideTrayModel,  9.72f, 0.20f, 0f));
-        models.add(new ModelInstance(sideTrayInsetModel, -9.72f, 0.31f, 0f));
-        models.add(new ModelInstance(sideTrayInsetModel,  9.72f, 0.31f, 0f));
+        models.add(new ModelInstance(sideTrayModel, -7.02f, 0.20f, 0f));
+        models.add(new ModelInstance(sideTrayModel,  7.02f, 0.20f, 0f));
+        models.add(new ModelInstance(sideTrayInsetModel, -7.02f, 0.31f, 0f));
+        models.add(new ModelInstance(sideTrayInsetModel,  7.02f, 0.31f, 0f));
 
         // Thin walnut lips make the wells read as routed recesses.
         Material trayLip = woodTextured(0.48f, 0.39f, 0.31f, 42f);
-        Model trayLipX = mb.createBox(0.08f, 0.075f, 8.72f, trayLip, attrs);
-        models.add(new ModelInstance(trayLipX, -9.06f, 0.39f, 0f));
-        models.add(new ModelInstance(trayLipX, -10.38f, 0.39f, 0f));
-        models.add(new ModelInstance(trayLipX,  9.06f, 0.39f, 0f));
-        models.add(new ModelInstance(trayLipX, 10.38f, 0.39f, 0f));
+        Model trayLipX = mb.createBox(0.06f, 0.075f, 7.42f, trayLip, attrs);
+        models.add(new ModelInstance(trayLipX, -6.63f, 0.39f, 0f));
+        models.add(new ModelInstance(trayLipX, -7.34f, 0.39f, 0f));
+        models.add(new ModelInstance(trayLipX,  6.63f, 0.39f, 0f));
+        models.add(new ModelInstance(trayLipX,  7.34f, 0.39f, 0f));
 
         // Decorative medallions on each half of the board.
         medallionModel = mb.createCylinder(
@@ -760,7 +760,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 TextureAttribute.createDiffuse(texture),
                 ColorAttribute.createSpecular(0.70f, 0.66f, 0.56f, 1f),
                 FloatAttribute.createShininess(68f));
-        return mb.createBox(1.10f, 1.10f, 1.10f, m, attrs);
+        return mb.createBox(0.76f, 0.76f, 0.76f, m, attrs);
     }
 
     private void triQuad(MeshPartBuilder p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) {
@@ -772,11 +772,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         mb.begin();
         MeshPartBuilder p = mb.part("checker", GL20.GL_TRIANGLES, attrs, material);
 
-        final int segments = 64;
-        final float radius = 0.54f;
-        final float bevelRadius = 0.060f;
-        final float half = 0.185f;
-        final float bevelY = 0.055f;
+        final int segments = 32;
+        final float radius = 0.39f;
+        final float bevelRadius = 0.045f;
+        final float half = 0.095f;
+        final float bevelY = 0.040f;
 
         for (int i = 0; i < segments; i++) {
             float a0 = MathUtils.PI2 * i / segments;
@@ -936,8 +936,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         final float w = 0.40f;
         final float y0 = 0f;
         final float y1 = 0.095f;
-        final float zBase = 1.93f;
-        final float zTip = -1.67f;
+        final float zBase = 1.55f;
+        final float zTip = -1.55f;
 
         Vector3 a0 = new Vector3(-w, y0, zBase);
         Vector3 b0 = new Vector3( w, y0, zBase);
@@ -981,7 +981,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void addTopPips(float x, float y, float z, int number) {
-        float d = 0.265f;
+        float d = 0.18f;
         if (number == 1 || number == 3 || number == 5) addPip(x, y, z);
         if (number >= 2) {
             addPip(x - d, y, z - d);
@@ -1015,7 +1015,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         camera.lookAt(cameraTarget);
         camera.up.set(Vector3.Y);
-        camera.fieldOfView = 32f;
+        camera.fieldOfView = 28f;
         camera.near = 0.1f;
         camera.far = 100f;
         camera.update();
@@ -1249,7 +1249,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public boolean scrolled(float amountX, float amountY) {
         cameraDistance = MathUtils.clamp(
-                cameraDistance * (1f + amountY * 0.055f), 16f, 30f);
+                cameraDistance * (1f + amountY * 0.055f), 13.5f, 22f);
         updateCamera();
         return true;
     }
