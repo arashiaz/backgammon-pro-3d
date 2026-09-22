@@ -406,31 +406,31 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Texture createNaturalWoodTexture(int size) {
-        // Soft, irregular walnut grain: low-frequency noise + gently warped
-        // directional fibers. No periodic sine bands, so the surface does not
-        // turn into horizontal/vertical stripes.
+        // Mobile-safe procedural walnut: irregular broad grain, soft pores and
+        // warped growth lines. No periodic sine bands, so the board reads as
+        // wood rather than a set of horizontal stripes.
         Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         for (int y = 0; y < size; y++) {
             float v = y / (float)(size - 1);
             for (int x = 0; x < size; x++) {
                 float u = x / (float)(size - 1);
 
-                float warp = (smoothNoise(u * 3.2f, v * 3.2f) - 0.5f) * 0.34f;
-                float fiberPos = u * 7.0f + warp
-                        + (smoothNoise(u * 12.0f, v * 2.5f) - 0.5f) * 0.22f;
+                float warpX = (smoothNoise(u * 2.2f, v * 2.2f) - 0.5f) * 1.15f;
+                float warpY = (smoothNoise(u * 1.7f + 13.7f, v * 1.7f + 7.2f) - 0.5f) * 0.55f;
 
-                float broad = smoothNoise(fiberPos * 2.2f, v * 1.8f);
-                float fine = smoothNoise(fiberPos * 10.0f, v * 8.0f);
-                float pores = smoothNoise(u * 34.0f, v * 12.0f);
+                float broad = smoothNoise(u * 3.0f + warpX, v * 3.0f + warpY);
+                float medium = smoothNoise(u * 9.0f + warpX * 2.0f, v * 7.0f + warpY);
+                float pore = smoothNoise(u * 28.0f + warpX * 3.0f, v * 22.0f + warpY * 2.0f);
 
-                float value = 0.88f
-                        + (broad - 0.5f) * 0.18f
-                        + (fine - 0.5f) * 0.07f
-                        + (pores - 0.5f) * 0.035f;
+                float grain = MathUtils.lerp(broad, medium, 0.38f);
+                float value = 0.82f
+                        + (grain - 0.5f) * 0.28f
+                        + (pore - 0.5f) * 0.055f;
 
-                float r = MathUtils.clamp(0.34f * value, 0f, 1f);
-                float g = MathUtils.clamp(0.185f * value, 0f, 1f);
-                float b = MathUtils.clamp(0.090f * value, 0f, 1f);
+                // Gentle warm walnut variation rather than orange plastic.
+                float r = MathUtils.clamp(0.37f * value, 0f, 1f);
+                float g = MathUtils.clamp(0.205f * value, 0f, 1f);
+                float b = MathUtils.clamp(0.105f * value, 0f, 1f);
 
                 pm.setColor(r, g, b, 1f);
                 pm.drawPixel(x, y);
@@ -439,36 +439,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         Texture t = new Texture(pm, true);
         t.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-        t.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
+        t.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         pm.dispose();
         return t;
-    }
-
-    private float smoothNoise(float x, float y) {
-        int x0 = MathUtils.floor(x);
-        int y0 = MathUtils.floor(y);
-        float tx = x - x0;
-        float ty = y - y0;
-
-        tx = tx * tx * (3f - 2f * tx);
-        ty = ty * ty * (3f - 2f * ty);
-
-        float a = hashNoise(x0, y0);
-        float b = hashNoise(x0 + 1, y0);
-        float c = hashNoise(x0, y0 + 1);
-        float d = hashNoise(x0 + 1, y0 + 1);
-
-        return MathUtils.lerp(
-                MathUtils.lerp(a, b, tx),
-                MathUtils.lerp(c, d, tx),
-                ty);
-    }
-
-    private float hashNoise(int x, int y) {
-        int h = x * 374761393 + y * 668265263;
-        h = (h ^ (h >>> 13)) * 1274126177;
-        h ^= (h >>> 16);
-        return (h & 0x7fffffff) / 2147483647f;
     }
 
     private Material wood(float r, float g, float b, float shine) {
@@ -613,30 +586,30 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.025f, 0.018f, 0.014f, 1f),
-                        ColorAttribute.createSpecular(0.24f, 0.20f, 0.16f, 1f),
+                        ColorAttribute.createDiffuse(0.045f, 0.028f, 0.020f, 1f),
+                        ColorAttribute.createSpecular(0.30f, 0.23f, 0.17f, 1f),
                         FloatAttribute.createShininess(74f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.075f, 0.048f, 0.030f, 1f),
-                        ColorAttribute.createSpecular(0.30f, 0.24f, 0.18f, 1f),
+                        ColorAttribute.createDiffuse(0.105f, 0.060f, 0.035f, 1f),
+                        ColorAttribute.createSpecular(0.34f, 0.26f, 0.19f, 1f),
                         FloatAttribute.createShininess(88f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.13f, 0.080f, 0.045f, 1f),
-                        ColorAttribute.createSpecular(0.40f, 0.30f, 0.20f, 1f),
+                        ColorAttribute.createDiffuse(0.18f, 0.095f, 0.050f, 1f),
+                        ColorAttribute.createSpecular(0.44f, 0.32f, 0.21f, 1f),
                         FloatAttribute.createShininess(96f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.82f, 0.70f, 0.50f, 1f),
+                        ColorAttribute.createDiffuse(0.88f, 0.74f, 0.52f, 1f),
                         ColorAttribute.createSpecular(0.72f, 0.60f, 0.42f, 1f),
                         FloatAttribute.createShininess(64f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.68f, 0.54f, 0.34f, 1f),
+                        ColorAttribute.createDiffuse(0.70f, 0.50f, 0.29f, 1f),
                         ColorAttribute.createSpecular(0.58f, 0.46f, 0.30f, 1f),
                         FloatAttribute.createShininess(78f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.90f, 0.80f, 0.60f, 1f),
+                        ColorAttribute.createDiffuse(0.94f, 0.84f, 0.64f, 1f),
                         ColorAttribute.createSpecular(0.82f, 0.70f, 0.48f, 1f),
                         FloatAttribute.createShininess(92f)),
                 attrs);
@@ -912,7 +885,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         final float w = 0.40f;
         final float y0 = 0f;
-        final float y1 = 0.065f;
+        final float y1 = 0.095f;
         final float zBase = 1.93f;
         final float zTip = -1.67f;
 
@@ -942,24 +915,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         p.triangle(c0, a0, a1);
         p.triangle(c0, a1, c1);
 
-        // Raised inset face uses the same deliberate UV layout, but with a
-        // slightly smaller footprint for a layered hand-finished appearance.
-        MeshPartBuilder detail = mb.part("point_detail", GL20.GL_TRIANGLES, attrs, detailMaterial);
-        final float dw = 0.335f;
-        final float dzBase = 1.80f;
-        final float dzTip = -1.49f;
-        final float dy = y1 + 0.006f;
-        Vector3 da = new Vector3(-dw, dy, dzBase);
-        Vector3 db = new Vector3( dw, dy, dzBase);
-        Vector3 dc = new Vector3(0f, dy, dzTip);
-        VertexInfo dva = new VertexInfo().set(
-                da, Vector3.Y, null, new Vector2(0.05f, 0.05f));
-        VertexInfo dvb = new VertexInfo().set(
-                db, Vector3.Y, null, new Vector2(0.95f, 0.05f));
-        VertexInfo dvc = new VertexInfo().set(
-                dc, Vector3.Y, null, new Vector2(0.5f, 0.95f));
-        detail.triangle(dva, dvb, dvc);
-
+        // Keep the playing points as one clean, solid surface.
+        // The previous raised inset created distracting banding/moire at
+        // mobile resolutions and made the points look striped instead of
+        // like the clean wood/felt in a premium physical board.
         return mb.end();
     }
 
