@@ -64,9 +64,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model accentModel;
     private Model diceTrayModel, screwModel;
     private Model diceEdgeModel;
-    private Texture woodTexture;
-    private Texture boardArtworkTexture;
-
+    
     private float lastX, lastY;
     private boolean dragging;
     private float cameraAzimuth = 0f;
@@ -498,9 +496,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void buildBoard() {
-        final long attrs = VertexAttributes.Usage.Position
-                | VertexAttributes.Usage.Normal
-                | VertexAttributes.Usage.TextureCoordinates;
+        final long attrs = VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
 
         // A dark furniture-like floor grounds the board in the scene instead
         // of leaving it floating against a flat black background.
@@ -515,32 +511,17 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 woodTextured(0.52f, 0.42f, 0.34f, 30f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
-        // Warm walnut base. The visible playfield is the top inner panel,
-        // so the procedural grain must sit ABOVE the felt/innerMat layer,
-        // not down at the hidden wooden base.
+        // Single clean playfield: one solid top surface avoids layered
+        // coplanar/intersecting panels that can create mobile depth artifacts.
         playingSurfaceModel = mb.createBox(
-                18.35f, 0.34f, 9.95f,
-                new Material(
-                        ColorAttribute.createDiffuse(0.34f, 0.21f, 0.13f, 1f),
-                        ColorAttribute.createSpecular(0.16f, 0.12f, 0.09f, 1f),
-                        FloatAttribute.createShininess(18f)), attrs);
-        models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
-
-        // Warm cloth/felt inset.
-        Model felt = mb.createBox(
-                17.55f, 0.18f, 9.05f,
-                surface(0.055f, 0.042f, 0.036f), attrs);
-        models.add(new ModelInstance(felt, 0f, 0.27f, 0f));
+                17.72f, 0.16f, 9.12f,
+                surface(0.105f, 0.070f, 0.050f), attrs);
+        models.add(new ModelInstance(playingSurfaceModel, 0f, 0.39f, 0f));
 
         railModel = mb.createBox(
                 18.05f, 0.10f, 9.55f,
                 woodTextured(0.42f, 0.34f, 0.27f, 40f), attrs);
-        models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
-
-        Model innerMat = mb.createBox(
-                17.55f, 0.08f, 9.05f,
-                surface(0.050f, 0.042f, 0.036f), attrs);
-        models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
+        models.add(new ModelInstance(railModel, 0f, 0.47f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
         Material innerRailMat = woodTextured(0.46f, 0.37f, 0.29f, 50f);
@@ -555,22 +536,22 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Model barShoulder = mb.createBox(
                 0.92f, 0.07f, 9.02f,
                 wood(0.22f, 0.060f, 0.016f, 30f), attrs);
-        models.add(new ModelInstance(barShoulder, 0f, 0.54f, 0f));
+        models.add(new ModelInstance(barShoulder, 0f, 0.56f, 0f));
 
         // Central bar with a subtle raised center strip.
         barModel = mb.createBox(
                 0.72f, 0.22f, 8.95f,
                 wood(0.12f, 0.034f, 0.012f, 28f), attrs);
-        models.add(new ModelInstance(barModel, 0f, 0.48f, 0f));
+        models.add(new ModelInstance(barModel, 0f, 0.54f, 0f));
 
         Model barHighlight = mb.createBox(
                 0.16f, 0.045f, 8.55f,
                 wood(0.58f, 0.22f, 0.050f, 40f), attrs);
-        models.add(new ModelInstance(barHighlight, 0f, 0.61f, 0f));
+        models.add(new ModelInstance(barHighlight, 0f, 0.67f, 0f));
 
         Material barCapMaterial = wood(0.34f, 0.11f, 0.022f, 46f);
         Model barCap = mb.createBox(0.28f, 0.035f, 8.35f, barCapMaterial, attrs);
-        models.add(new ModelInstance(barCap, 0f, 0.665f, 0f));
+        models.add(new ModelInstance(barCap, 0f, 0.725f, 0f));
 
         // Classic flat points: no wood texture is applied to these meshes.
         darkPointModel = createPointModel(
@@ -650,7 +631,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         accentModel = mb.createCylinder(
                 0.16f, 0.035f, 0.16f, 32,
                 wood(0.78f, 0.50f, 0.17f, 52f), attrs);
-        models.add(new ModelInstance(accentModel, 0f, 0.68f, 0f));
+        models.add(new ModelInstance(accentModel, 0f, 0.74f, 0f));
 
         // Premium dice tray: a shallow inset surround makes the dice feel
         // physically seated on the board instead of floating above it.
@@ -1200,8 +1181,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         uiShape.dispose();
         uiBatch.dispose();
         uiFont.dispose();
-        if (woodTexture != null) woodTexture.dispose();
-        if (boardArtworkTexture != null) boardArtworkTexture.dispose();
         if (floorModel != null) floorModel.dispose();
         if (baseModel != null) baseModel.dispose();
         if (playingSurfaceModel != null) playingSurfaceModel.dispose();
