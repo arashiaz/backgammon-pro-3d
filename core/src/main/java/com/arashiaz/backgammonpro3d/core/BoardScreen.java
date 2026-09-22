@@ -1121,13 +1121,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         float cardY = h - top + 5f;
 
         uiShape.setColor(0.055f, 0.070f, 0.075f, 0.96f);
-        uiShape.roundRect(leftCardX, cardY, cardW, cardH, 12f);
-        uiShape.roundRect(rightCardX, cardY, cardW, cardH, 12f);
+        uiShape.rect(leftCardX, cardY, cardW, cardH);
+        uiShape.rect(rightCardX, cardY, cardW, cardH);
 
         float turnW = Math.min(280f, w * 0.25f);
         float turnX = (w - turnW) * 0.5f;
         uiShape.setColor(0.06f, 0.075f, 0.08f, 0.92f);
-        uiShape.roundRect(turnX, cardY + 4f, turnW, cardH - 8f, 24f);
+        uiShape.rect(turnX, cardY + 4f, turnW, cardH - 8f);
         uiShape.end();
 
         uiBatch.begin();
@@ -1170,7 +1170,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         uiShape.begin(ShapeRenderer.ShapeType.Filled);
         uiShape.setColor(0.96f, 0.72f, 0.36f, 1f);
-        uiShape.roundRect(buttonX, buttonY, buttonW, buttonH, 24f);
+        uiShape.rect(buttonX, buttonY, buttonW, buttonH);
         uiShape.end();
 
         uiBatch.end();
