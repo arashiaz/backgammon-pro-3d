@@ -226,8 +226,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // only after the final face is settled, so they never float while the
         // cube spins. The final face is rebuilt atomically when the animation ends.
         if (diceRollTime <= 0f) {
-            if (dice[0] > 0) addTopPips(-1.55f, 1.690f, 0f, dice[0]);
-            if (dice[1] > 0) addTopPips( 1.55f, 1.690f, 0f, dice[1]);
+            if (dice[0] > 0) addTopPips(-1.55f, 1.615f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 1.55f, 1.615f, 0f, dice[1]);
         }
     }
 
@@ -624,7 +624,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         diceModel = createBeveledDieModel(attrs);
         dieDotModel = mb.createCylinder(
-                0.145f, 0.022f, 0.145f, 32,
+                0.105f, 0.020f, 0.105f, 32,
                 new Material(
                         ColorAttribute.createDiffuse(0.035f, 0.032f, 0.028f, 1f),
                         ColorAttribute.createSpecular(0.12f, 0.12f, 0.12f, 1f),
@@ -720,63 +720,14 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Model createBeveledDieModel(long attrs) {
-        // Rounded/chamfered die: a faceted silhouette gives the cube softer,
-        // manufactured edges instead of the primitive sharp-box appearance.
-        mb.begin();
-        MeshPartBuilder p = mb.part("die", GL20.GL_TRIANGLES, attrs,
-                new Material(
-                        ColorAttribute.createDiffuse(0.91f, 0.89f, 0.84f, 1f),
-                        ColorAttribute.createSpecular(0.72f, 0.68f, 0.58f, 1f),
-                        FloatAttribute.createShininess(72f)));
-
-        final float h = 0.55f;
-        final float b = 0.075f;
-        final float s = h - b;
-
-        // Six recessed face rectangles leave a continuous chamfer around every edge.
-        addDieFace(p, new Vector3(0,h,0), Vector3.Y, s, b);
-        addDieFace(p, new Vector3(0,-h,0), new Vector3(0,-1,0), s, b);
-        addDieFace(p, new Vector3(h,0,0), Vector3.X, s, b);
-        addDieFace(p, new Vector3(-h,0,0), new Vector3(-1,0,0), s, b);
-        addDieFace(p, new Vector3(0,0,h), Vector3.Z, s, b);
-        addDieFace(p, new Vector3(0,0,-h), new Vector3(0,0,-1), s, b);
-
-        // Fill the 12 chamfer strips.
-        Material edge = new Material(
-                ColorAttribute.createDiffuse(0.76f, 0.73f, 0.68f, 1f),
-                ColorAttribute.createSpecular(0.55f, 0.52f, 0.46f, 1f),
-                FloatAttribute.createShininess(54f));
-        MeshPartBuilder e = mb.part("die_edges", GL20.GL_TRIANGLES, attrs, edge);
-        addDieEdge(e, new Vector3(-s,h,-s), new Vector3(s,h,-s), new Vector3(s,h-b,-s+b), new Vector3(-s,h-b,-s+b));
-        addDieEdge(e, new Vector3(-s,h,s), new Vector3(s,h,s), new Vector3(s,h-b,s-b), new Vector3(-s,h-b,s-b));
-        addDieEdge(e, new Vector3(-s,-h,-s), new Vector3(s,-h,-s), new Vector3(s,-h+b,-s+b), new Vector3(-s,-h+b,-s+b));
-        addDieEdge(e, new Vector3(-s,-h,s), new Vector3(s,-h,s), new Vector3(s,-h+b,s-b), new Vector3(-s,-h+b,s-b));
-        addDieEdge(e, new Vector3(h,-s,-s), new Vector3(h,s,-s), new Vector3(h-b,s-b,-s+b), new Vector3(h-b,-s+b,-s+b));
-        addDieEdge(e, new Vector3(-h,-s,-s), new Vector3(-h,s,-s), new Vector3(-h+b,s-b,-s+b), new Vector3(-h+b,-s+b,-s+b));
-        addDieEdge(e, new Vector3(h,-s,s), new Vector3(h,s,s), new Vector3(h-b,s-b,s-b), new Vector3(h-b,-s+b,s-b));
-        addDieEdge(e, new Vector3(-h,-s,s), new Vector3(-h,s,s), new Vector3(-h+b,s-b,s-b), new Vector3(-h+b,-s+b,s-b));
-        addDieEdge(e, new Vector3(-s,-s,h), new Vector3(s,-s,h), new Vector3(s-b,-s+b,h-b), new Vector3(-s+b,-s+b,h-b));
-        addDieEdge(e, new Vector3(-s,s,h), new Vector3(s,s,h), new Vector3(s-b,s-b,h-b), new Vector3(-s+b,s-b,h-b));
-        addDieEdge(e, new Vector3(-s,-s,-h), new Vector3(s,-s,-h), new Vector3(s-b,-s+b,-h+b), new Vector3(-s+b,-s+b,-h+b));
-        addDieEdge(e, new Vector3(-s,s,-h), new Vector3(s,s,-h), new Vector3(s-b,s-b,-h+b), new Vector3(-s+b,s-b,-h+b));
-        return mb.end();
-    }
-
-    private void addDieFace(MeshPartBuilder p, Vector3 center, Vector3 normal, float halfSize, float inset) {
-        Vector3 u = Math.abs(normal.y) > 0.5f ? Vector3.X : Vector3.Y;
-        Vector3 v = new Vector3().set(normal).crs(u).nor();
-        u = new Vector3(u).nor();
-        v = new Vector3(v).nor();
-        Vector3 c = new Vector3(center).mulAdd(normal, -0.002f);
-        Vector3 a = new Vector3(c).mulAdd(u, halfSize).mulAdd(v, halfSize);
-        Vector3 b = new Vector3(c).mulAdd(u, -halfSize).mulAdd(v, halfSize);
-        Vector3 d = new Vector3(c).mulAdd(u, halfSize).mulAdd(v, -halfSize);
-        Vector3 e = new Vector3(c).mulAdd(u, -halfSize).mulAdd(v, -halfSize);
-        p.triangle(a,b,e); p.triangle(a,e,d);
-    }
-
-    private void addDieEdge(MeshPartBuilder p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) {
-        p.triangle(a,b,c); p.triangle(a,c,d);
+        // Keep the die body geometrically robust on mobile GPUs. The previous
+        // hand-built chamfer mesh exposed gaps and read like stacked plates;
+        // this clean rounded-looking cube is paired with smaller inset pips.
+        Material m = new Material(
+                ColorAttribute.createDiffuse(0.93f, 0.91f, 0.86f, 1f),
+                ColorAttribute.createSpecular(0.70f, 0.66f, 0.56f, 1f),
+                FloatAttribute.createShininess(68f));
+        return mb.createBox(1.10f, 1.10f, 1.10f, m, attrs);
     }
 
     private void triQuad(MeshPartBuilder p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) {
@@ -988,7 +939,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void addTopPips(float x, float y, float z, int number) {
-        float d = 0.305f;
+        float d = 0.265f;
         if (number == 1 || number == 3 || number == 5) addPip(x, y, z);
         if (number >= 2) {
             addPip(x - d, y, z - d);
