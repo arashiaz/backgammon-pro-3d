@@ -547,24 +547,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 surface(0.050f, 0.042f, 0.036f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
 
-        // Visible natural walnut grain layer: just above the inner panel and
-        // below the raised points/checkers. This is intentionally subtle.
-        Material grainMaterial = new Material(
-                TextureAttribute.createDiffuse(proceduralWoodTexture),
-                ColorAttribute.createDiffuse(0.92f, 0.78f, 0.60f, 1f),
-                ColorAttribute.createSpecular(0.06f, 0.045f, 0.03f, 1f),
-                FloatAttribute.createShininess(14f));
-        mb.begin();
-        MeshPartBuilder grain = mb.part("visible_natural_wood_grain", GL20.GL_TRIANGLES, attrs, grainMaterial);
-        float gy = 0.448f;
-        VertexInfo g1 = new VertexInfo().set(new Vector3(-8.70f, gy, -4.42f), Vector3.Y, null, new Vector2(0f, 0f));
-        VertexInfo g2 = new VertexInfo().set(new Vector3( 8.70f, gy, -4.42f), Vector3.Y, null, new Vector2(1f, 0f));
-        VertexInfo g3 = new VertexInfo().set(new Vector3( 8.70f, gy,  4.42f), Vector3.Y, null, new Vector2(1f, 1f));
-        VertexInfo g4 = new VertexInfo().set(new Vector3(-8.70f, gy,  4.42f), Vector3.Y, null, new Vector2(0f, 1f));
-        grain.rect(g1, g2, g3, g4);
-        Model grainModel = mb.end();
-        models.add(new ModelInstance(grainModel));
-
         // Thin inner rails create a layered, furniture-grade edge around the felt.
         Material innerRailMat = woodTextured(0.46f, 0.37f, 0.29f, 50f);
         Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
@@ -607,11 +589,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         FloatAttribute.createShininess(6f)), attrs);
         lightPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.86f, 0.77f, 0.64f, 1f),
+                        ColorAttribute.createDiffuse(0.62f, 0.50f, 0.36f, 1f),
                         ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
                         FloatAttribute.createShininess(8f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.78f, 0.68f, 0.52f, 1f),
+                        ColorAttribute.createDiffuse(0.54f, 0.42f, 0.29f, 1f),
                         ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
                         FloatAttribute.createShininess(6f)), attrs);
 
