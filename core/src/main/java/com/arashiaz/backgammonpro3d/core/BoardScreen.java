@@ -171,10 +171,16 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private boolean hitDie(int screenX, int screenY) {
         Ray ray = camera.getPickRay(screenX, screenY);
+        // Intersect at the top of the dice/tray region. Using the actual
+        // projected die centers avoids the old board-scale mismatch that made
+        // only a small corner respond to touch.
         Plane plane = new Plane(Vector3.Y, 0.46f);
         if (!Intersector.intersectRayPlane(ray, plane, tmp)) return false;
-        return (tmp.x + 1.55f) * (tmp.x + 1.55f) + tmp.z * tmp.z < 1.15f * 1.15f
-                || (tmp.x - 1.55f) * (tmp.x - 1.55f) + tmp.z * tmp.z < 1.15f * 1.15f;
+        final float r2 = 0.72f * 0.72f;
+        float dxA = tmp.x + 0.48f;
+        float dxB = tmp.x - 0.48f;
+        return dxA * dxA + tmp.z * tmp.z <= r2
+                || dxB * dxB + tmp.z * tmp.z <= r2;
     }
 
     private void rollDice() {
@@ -256,7 +262,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (count <= 0) return null;
         int col = point < 12 ? point : 23 - point;
         float x = XS[col];
-        float z = point < 12 ? -3.30f + (count - 1) * 0.43f : 3.30f - (count - 1) * 0.43f;
+        float z = point < 12 ? -2.92f + (count - 1) * 0.22f : 2.92f - (count - 1) * 0.22f;
         Model expected = points[point] > 0 ? lightChecker : darkChecker;
         for (ModelInstance instance : gameObjects) {
             if (instance.model != expected) continue;
@@ -269,7 +275,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Vector3 pointPosition(int point, int stackIndex) {
         int col = point < 12 ? point : 23 - point;
         float x = XS[col];
-        float z = point < 12 ? -3.30f + stackIndex * 0.43f : 3.30f - stackIndex * 0.43f;
+        float z = point < 12 ? -2.92f + stackIndex * 0.22f : 2.92f - stackIndex * 0.22f;
         return new Vector3(x, 0.78f + stackIndex * 0.425f, z);
     }
 
@@ -556,7 +562,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // coplanar/intersecting panels that can create mobile depth artifacts.
         playingSurfaceModel = mb.createBox(
                 12.70f, 0.18f, 7.60f,
-                surface(0.40f, 0.28f, 0.18f), attrs);
+                woodTextured(0.62f, 0.40f, 0.24f, 42f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.38f, 0f));
 
         // No overlay rail over the playfield. Keeping the playing surface as
@@ -713,34 +719,24 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         medallionRingModel = mb.createCylinder(
                 0.31f, 0.045f, 0.31f, 48,
                 wood(0.72f, 0.46f, 0.15f, 58f), attrs);
-        models.add(new ModelInstance(medallionModel, -4.10f, 0.69f, 0f));
-        models.add(new ModelInstance(medallionModel,  4.10f, 0.69f, 0f));
-        models.add(new ModelInstance(medallionRingModel, -4.10f, 0.725f, 0f));
-        models.add(new ModelInstance(medallionRingModel,  4.10f, 0.725f, 0f));
+        // Decorative hardware omitted from the gameplay surface.
 
         // Center hinge plates and brass fasteners make the bar feel like a real case seam.
         hingePlateModel = mb.createBox(
                 0.48f, 0.055f, 1.35f,
                 wood(0.58f, 0.34f, 0.10f, 62f), attrs);
-        models.add(new ModelInstance(hingePlateModel, 0f, 0.70f, -1.75f));
-        models.add(new ModelInstance(hingePlateModel, 0f, 0.70f,  1.75f));
+        // Decorative hardware omitted from the gameplay surface.
 
         Model hingeScrew = mb.createCylinder(
                 0.075f, 0.035f, 0.075f, 20,
                 wood(0.76f, 0.52f, 0.20f, 70f), attrs);
-        models.add(new ModelInstance(hingeScrew, -0.17f, 0.76f, -1.95f));
-        models.add(new ModelInstance(hingeScrew,  0.17f, 0.76f, -1.95f));
-        models.add(new ModelInstance(hingeScrew, -0.17f, 0.76f,  1.95f));
-        models.add(new ModelInstance(hingeScrew,  0.17f, 0.76f,  1.95f));
+        // Decorative hardware omitted from the gameplay surface.
 
         // Four small brass-like fasteners on the board corners.
         screwModel = mb.createCylinder(
                 0.105f, 0.045f, 0.105f, 24,
                 wood(0.78f, 0.50f, 0.17f, 58f), attrs);
-        models.add(new ModelInstance(screwModel, -8.55f, 0.40f, -4.78f));
-        models.add(new ModelInstance(screwModel,  8.55f, 0.40f, -4.78f));
-        models.add(new ModelInstance(screwModel, -8.55f, 0.40f,  4.78f));
-        models.add(new ModelInstance(screwModel,  8.55f, 0.40f,  4.78f));
+        // Decorative hardware omitted from the gameplay surface.
 
         rebuildGameObjects();
     }
