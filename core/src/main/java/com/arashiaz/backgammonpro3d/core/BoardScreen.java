@@ -452,12 +452,16 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 woodTextured(0.52f, 0.42f, 0.34f, 30f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
-        // Real walnut texture is used only for the wooden playing surface.
-        // The colored points remain independent flat materials so the grain can
-        // never tile across them or turn them into horizontal bands.
+        // Solid warm walnut playing surface. The previous board_wood_texture
+        // produced dense horizontal bands on this large face, so the playfield
+        // deliberately uses a clean base material; the real wood texture stays
+        // on the outer frame/rails where its scale is predictable.
         playingSurfaceModel = mb.createBox(
                 18.35f, 0.34f, 9.95f,
-                woodTextured(0.42f, 0.30f, 0.20f, 26f), attrs);
+                new Material(
+                        ColorAttribute.createDiffuse(0.35f, 0.22f, 0.14f, 1f),
+                        ColorAttribute.createSpecular(0.20f, 0.16f, 0.12f, 1f),
+                        FloatAttribute.createShininess(16f)), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
 
         // Warm cloth/felt inset.
@@ -508,11 +512,23 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Classic flat points: no wood texture is applied to these meshes.
         darkPointModel = createPointModel(
-                surface(0.29f, 0.145f, 0.067f),
-                surface(0.24f, 0.105f, 0.045f), attrs);
+                new Material(
+                        ColorAttribute.createDiffuse(0.28f, 0.14f, 0.07f, 1f),
+                        ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
+                        FloatAttribute.createShininess(8f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.23f, 0.105f, 0.045f, 1f),
+                        ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
+                        FloatAttribute.createShininess(6f)), attrs);
         lightPointModel = createPointModel(
-                surface(0.85f, 0.76f, 0.63f),
-                surface(0.76f, 0.66f, 0.51f), attrs);
+                new Material(
+                        ColorAttribute.createDiffuse(0.86f, 0.77f, 0.64f, 1f),
+                        ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
+                        FloatAttribute.createShininess(8f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.78f, 0.68f, 0.52f, 1f),
+                        ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
+                        FloatAttribute.createShininess(6f)), attrs);
 
         for (int i = 0; i < 12; i++) {
             ModelInstance bottomPoint = new ModelInstance(
@@ -828,7 +844,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         mb.begin();
         MeshPartBuilder p = mb.part("point", GL20.GL_TRIANGLES, attrs, material);
 
-        final float w = 0.485f;
+        final float w = 0.40f;
         final float y0 = 0f;
         final float y1 = 0.065f;
         final float zBase = 1.93f;
@@ -863,7 +879,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Raised inset face uses the same deliberate UV layout, but with a
         // slightly smaller footprint for a layered hand-finished appearance.
         MeshPartBuilder detail = mb.part("point_detail", GL20.GL_TRIANGLES, attrs, detailMaterial);
-        final float dw = 0.405f;
+        final float dw = 0.335f;
         final float dzBase = 1.80f;
         final float dzTip = -1.49f;
         final float dy = y1 + 0.006f;
