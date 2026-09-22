@@ -831,19 +831,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             top.triangle(c, a, b);
         }
 
-        // Integrated top medallion: one shared mesh per checker color, so
-        // the detailing follows every animated checker without extra objects.
-        MeshPartBuilder detail = mb.part("checker_detail", GL20.GL_TRIANGLES, attrs, detailMaterial);
-        final float detailY = half + bevelY + 0.006f;
-        addDisc(detail, 0.205f, detailY, 48);
-        addRing(detail, 0.395f, 0.350f, detailY + 0.002f, 64);
-
-        // Thin circumferential bands catch the key light and make the bevel
-        // read as machined material rather than a flat cylinder.
-        MeshPartBuilder rim = mb.part("checker_rim", GL20.GL_TRIANGLES, attrs, rimMaterial);
-        addCylinderBand(rim, 0.542f, 0.135f, 0.160f, 64);
-        addCylinderBand(rim, 0.542f, -0.160f, -0.135f, 64);
-
+        // The generated material is intentionally left unobstructed: no
+        // oversized center medallion or concentric rings. The bevel and
+        // physically varied texture provide the premium finish cleanly.
         return mb.end();
     }
 
