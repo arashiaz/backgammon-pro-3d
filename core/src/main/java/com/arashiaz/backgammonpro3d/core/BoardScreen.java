@@ -64,6 +64,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model accentModel;
     private Model diceTrayModel, screwModel;
     private Model diceEdgeModel;
+    private Texture woodGrainTexture;
     
     private float lastX, lastY;
     private boolean dragging;
@@ -110,6 +111,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         environment.add(new DirectionalLight().set(
                 0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
 
+        woodGrainTexture = createNaturalWoodTexture(512);
         buildBoard();
         updateCamera();
     }
@@ -427,42 +429,48 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Texture createNaturalWoodTexture(int size) {
-        // Mobile-safe procedural walnut: irregular broad grain, soft pores and
-        // warped growth lines. No periodic sine bands, so the board reads as
-        // wood rather than a set of horizontal stripes.
+        // Soft, irregular walnut grain. The pattern is deliberately aperiodic:
+        // no sine bands, no repeated horizontal stripes, and only subtle contrast.
         Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+
         for (int y = 0; y < size; y++) {
-            float v = y / (float)(size - 1);
+            float v = y / (float) (size - 1);
             for (int x = 0; x < size; x++) {
-                float u = x / (float)(size - 1);
+                float u = x / (float) (size - 1);
 
-                float warpX = (smoothNoise(u * 2.2f, v * 2.2f) - 0.5f) * 1.15f;
-                float warpY = (smoothNoise(u * 1.7f + 13.7f, v * 1.7f + 7.2f) - 0.5f) * 0.55f;
+                float warp = (smoothNoise(u * 2.4f, v * 2.4f) - 0.5f) * 0.75f;
+                float grain = smoothNoise(
+                        u * 3.2f + warp,
+                        v * 13.0f + warp * 0.55f);
 
-                float broad = smoothNoise(u * 3.0f + warpX, v * 3.0f + warpY);
-                float medium = smoothNoise(u * 9.0f + warpX * 2.0f, v * 7.0f + warpY);
-                float pore = smoothNoise(u * 28.0f + warpX * 3.0f, v * 22.0f + warpY * 2.0f);
+                float broad = smoothNoise(
+                        u * 1.8f + warp * 0.35f,
+                        v * 4.0f + warp * 0.25f);
 
-                float grain = MathUtils.lerp(broad, medium, 0.38f);
-                float value = 0.82f
-                        + (grain - 0.5f) * 0.16f
-                        + (pore - 0.5f) * 0.025f;
+                float pore = smoothNoise(
+                        u * 22.0f + warp,
+                        v * 30.0f - warp);
 
-                // Gentle warm walnut variation rather than orange plastic.
-                float r = MathUtils.clamp(0.37f * value, 0f, 1f);
-                float g = MathUtils.clamp(0.205f * value, 0f, 1f);
-                float b = MathUtils.clamp(0.105f * value, 0f, 1f);
+                // Mostly broad natural variation, with restrained directional grain.
+                float variation = (broad - 0.5f) * 0.12f
+                        + (grain - 0.5f) * 0.075f
+                        + (pore - 0.5f) * 0.018f;
+
+                float r = MathUtils.clamp(0.34f + variation * 0.90f, 0f, 1f);
+                float g = MathUtils.clamp(0.16f + variation * 0.55f, 0f, 1f);
+                float b = MathUtils.clamp(0.075f + variation * 0.32f, 0f, 1f);
 
                 pm.setColor(r, g, b, 1f);
                 pm.drawPixel(x, y);
             }
         }
 
-        Texture t = new Texture(pm, true);
-        t.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-        t.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        Texture tex = new Texture(pm, true);
+        tex.setFilter(Texture.TextureFilter.MipMapLinearLinear,
+                Texture.TextureFilter.Linear);
+        tex.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         pm.dispose();
-        return t;
+        return tex;
     }
 
     private Material wood(float r, float g, float b, float shine) {
@@ -476,9 +484,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Material woodTextured(float r, float g, float b, float shine) {
-        // Deliberately texture-free: the previous procedural grain produced
-        // distracting horizontal banding/moire on the mobile display.
-        Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
+        Material m = new Material(
+                ColorAttribute.createDiffuse(r, g, b, 1f),
+                TextureAttribute.createDiffuse(woodGrainTexture));
         m.set(ColorAttribute.createSpecular(
                 Math.min(1f, r + 0.14f),
                 Math.min(1f, g + 0.14f),
@@ -1166,6 +1174,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public void dispose() {
+        if (woodGrainTexture != null) woodGrainTexture.dispose();
         batch.dispose();
         uiShape.dispose();
         uiBatch.dispose();
