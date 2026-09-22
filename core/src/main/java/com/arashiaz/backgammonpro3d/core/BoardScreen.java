@@ -99,9 +99,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         resetGameState();
 
         environment.set(new ColorAttribute(
-                ColorAttribute.AmbientLight, 0.34f, 0.32f, 0.30f, 1f));
+                ColorAttribute.AmbientLight, 0.27f, 0.24f, 0.21f, 1f));
         environment.add(new DirectionalLight().set(
-                0.92f, 0.86f, 0.74f, -0.55f, -1.0f, -0.35f));
+                1.05f, 0.92f, 0.72f, -0.55f, -1.0f, -0.35f));
         environment.add(new DirectionalLight().set(
                 0.28f, 0.34f, 0.48f, 0.55f, -0.45f, 0.65f));
         // A focused warm key and a restrained cool rim give the wood and
@@ -113,7 +113,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         environment.add(new DirectionalLight().set(
                 0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
 
-        woodTexture = new Texture(Gdx.files.internal("textures/board_wood_texture.jpg"), true);
         proceduralWoodTexture = createNaturalWoodTexture(1024);
         buildBoard();
         updateCamera();
@@ -484,7 +483,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private Material woodTextured(float r, float g, float b, float shine) {
         Material m = new Material(
-                TextureAttribute.createDiffuse(woodTexture),
+                TextureAttribute.createDiffuse(proceduralWoodTexture),
                 ColorAttribute.createDiffuse(r, g, b, 1f),
                 ColorAttribute.createSpecular(
                         Math.min(1f, r + 0.14f),
@@ -614,31 +613,31 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.018f, 0.035f, 0.095f, 1f),
-                        ColorAttribute.createSpecular(0.34f, 0.42f, 0.70f, 1f),
+                        ColorAttribute.createDiffuse(0.025f, 0.018f, 0.014f, 1f),
+                        ColorAttribute.createSpecular(0.24f, 0.20f, 0.16f, 1f),
                         FloatAttribute.createShininess(74f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.045f, 0.075f, 0.16f, 1f),
-                        ColorAttribute.createSpecular(0.30f, 0.42f, 0.70f, 1f),
+                        ColorAttribute.createDiffuse(0.075f, 0.048f, 0.030f, 1f),
+                        ColorAttribute.createSpecular(0.30f, 0.24f, 0.18f, 1f),
                         FloatAttribute.createShininess(88f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.075f, 0.11f, 0.20f, 1f),
-                        ColorAttribute.createSpecular(0.44f, 0.54f, 0.82f, 1f),
+                        ColorAttribute.createDiffuse(0.13f, 0.080f, 0.045f, 1f),
+                        ColorAttribute.createSpecular(0.40f, 0.30f, 0.20f, 1f),
                         FloatAttribute.createShininess(96f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.88f, 0.82f, 0.66f, 1f),
-                        ColorAttribute.createSpecular(0.76f, 0.70f, 0.54f, 1f),
+                        ColorAttribute.createDiffuse(0.82f, 0.70f, 0.50f, 1f),
+                        ColorAttribute.createSpecular(0.72f, 0.60f, 0.42f, 1f),
                         FloatAttribute.createShininess(64f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.72f, 0.64f, 0.47f, 1f),
-                        ColorAttribute.createSpecular(0.62f, 0.56f, 0.42f, 1f),
+                        ColorAttribute.createDiffuse(0.68f, 0.54f, 0.34f, 1f),
+                        ColorAttribute.createSpecular(0.58f, 0.46f, 0.30f, 1f),
                         FloatAttribute.createShininess(78f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.80f, 0.73f, 0.55f, 1f),
-                        ColorAttribute.createSpecular(0.78f, 0.70f, 0.52f, 1f),
+                        ColorAttribute.createDiffuse(0.90f, 0.80f, 0.60f, 1f),
+                        ColorAttribute.createSpecular(0.82f, 0.70f, 0.48f, 1f),
                         FloatAttribute.createShininess(92f)),
                 attrs);
 
