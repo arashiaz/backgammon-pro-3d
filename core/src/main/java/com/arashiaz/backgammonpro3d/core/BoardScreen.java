@@ -65,6 +65,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model diceTrayModel, screwModel;
     private Model diceEdgeModel;
     private Texture woodTexture;
+    private Texture boardArtworkTexture;
 
     private float lastX, lastY;
     private boolean dragging;
@@ -456,6 +457,15 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 wood(0.27f, 0.18f, 0.13f, 30f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
 
+        // Single artwork texture: the playing field is now one coherent surface,
+        // instead of many separately shaded procedural point meshes.
+        boardArtworkTexture = createBoardArtworkTexture();
+        Material artworkMaterial = new Material(
+                TextureAttribute.createDiffuse(boardArtworkTexture),
+                ColorAttribute.createDiffuse(1f, 1f, 1f, 1f));
+        Model artworkModel = mb.createBox(17.55f, 0.045f, 9.05f, artworkMaterial, attrs);
+        models.add(new ModelInstance(artworkModel, 0f, 0.66f, 0f));
+
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
                 17.55f, 0.18f, 9.05f,
@@ -502,30 +512,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Model barCap = mb.createBox(0.28f, 0.035f, 8.35f, barCapMaterial, attrs);
         models.add(new ModelInstance(barCap, 0f, 0.665f, 0f));
 
-        // Real flat triangular points, not cones.
-        darkPointModel = createPointModel(
-                surface(0.24f, 0.055f, 0.045f),
-                surface(0.34f, 0.085f, 0.070f), attrs);
-        lightPointModel = createPointModel(
-                surface(0.62f, 0.43f, 0.23f),
-                surface(0.76f, 0.55f, 0.30f), attrs);
-
-        float[] xs = XS;
-
-        for (int i = 0; i < xs.length; i++) {
-            boolean dark = (i % 2 == 0);
-            Model point = dark ? darkPointModel : lightPointModel;
-
-            ModelInstance top = new ModelInstance(point, xs[i], 0.66f, 0f);
-            top.transform.translate(0f, 0f, 2.42f);
-            models.add(top);
-
-            ModelInstance bottom = new ModelInstance(point, xs[i], 0.66f, 0f);
-            bottom.transform.translate(0f, 0f, -2.42f);
-            bottom.transform.rotate(Vector3.Y, 180f);
-            models.add(bottom);
-        }
-
+        // The points are baked into the single board artwork texture above.
         // Shared checker meshes. High radial resolution keeps the circular
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(
@@ -765,6 +752,62 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             p.triangle(o0, o1, in0);
             p.triangle(o1, in1, in0);
         }
+    }
+
+    private Texture createBoardArtworkTexture() {
+        final int W = 1024, H = 512;
+        Pixmap p = new Pixmap(W, H, Pixmap.Format.RGBA8888);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                float wave = (float)Math.sin(x * 0.035f + Math.sin(y * 0.018f) * 2.2f);
+                float fine = (float)Math.sin(x * 0.17f + y * 0.012f);
+                float n = wave * 0.018f + fine * 0.008f;
+                p.setColor(new Color(0.29f + n, 0.145f + n * 0.65f, 0.075f + n * 0.40f, 1f));
+                p.drawPixel(x, y);
+            }
+        }
+        p.setColor(new Color(0.32f, 0.18f, 0.10f, 1f));
+        p.fillRectangle(52, 24, 430, 464);
+        p.fillRectangle(542, 24, 430, 464);
+
+        float[] light = {0.79f, 0.58f, 0.32f};
+        float[] dark = {0.34f, 0.075f, 0.045f};
+        int left = 62, top = 36, bottom = 476, center = 256;
+        for (int side = 0; side < 2; side++) {
+            int sx = side == 0 ? left : 542;
+            for (int i = 0; i < 6; i++) {
+                int x0 = sx + i * 70, x1 = x0 + 70;
+                drawTri(p, x0, top, x1, top, (i % 2 == 0) ? light : dark, center - 8);
+                drawTri(p, x0, bottom, x1, bottom, (i % 2 == 0) ? dark : light, center + 8);
+            }
+        }
+        drawMedallion(p, 256, 256);
+        drawMedallion(p, 768, 256);
+        Texture result = new Texture(p, true);
+        p.dispose();
+        return result;
+    }
+
+    private void drawTri(Pixmap p, int x0, int y0, int x1, int y1, float[] c, int tipY) {
+        p.setColor(c[0], c[1], c[2], 1f);
+        int xm = (x0 + x1) / 2;
+        int edge = Math.min(y0, y1);
+        p.fillTriangle(x0, edge, x1, edge, xm, tipY);
+    }
+
+    private void drawMedallion(Pixmap p, int cx, int cy) {
+        p.setColor(0.78f, 0.57f, 0.31f, 1f);
+        p.fillCircle(cx, cy, 58);
+        p.setColor(0.28f, 0.14f, 0.07f, 1f);
+        p.fillCircle(cx, cy, 50);
+        p.setColor(0.82f, 0.63f, 0.36f, 1f);
+        for (int i = 0; i < 8; i++) {
+            double a = i * Math.PI / 4.0;
+            int x = (int)(cx + 43 * Math.cos(a));
+            int y = (int)(cy + 43 * Math.sin(a));
+            p.fillTriangle(cx, cy, x - 7, y - 7, x + 7, y + 7);
+        }
+        p.fillCircle(cx, cy, 10);
     }
 
     private Model createPointModel(Material material, Material detailMaterial, long attrs) {
@@ -1080,6 +1123,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         uiBatch.dispose();
         uiFont.dispose();
         if (woodTexture != null) woodTexture.dispose();
+        if (boardArtworkTexture != null) boardArtworkTexture.dispose();
         if (floorModel != null) floorModel.dispose();
         if (baseModel != null) baseModel.dispose();
         if (playingSurfaceModel != null) playingSurfaceModel.dispose();
