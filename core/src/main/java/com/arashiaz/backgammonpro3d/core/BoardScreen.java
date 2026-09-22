@@ -514,23 +514,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Single clean playfield: one solid top surface avoids layered
         // coplanar/intersecting panels that can create mobile depth artifacts.
         playingSurfaceModel = mb.createBox(
-                17.72f, 0.16f, 9.12f,
-                surface(0.105f, 0.070f, 0.050f), attrs);
-        models.add(new ModelInstance(playingSurfaceModel, 0f, 0.39f, 0f));
+                17.72f, 0.20f, 9.12f,
+                surface(0.075f, 0.045f, 0.030f), attrs);
+        models.add(new ModelInstance(playingSurfaceModel, 0f, 0.36f, 0f));
 
-        railModel = mb.createBox(
-                18.05f, 0.10f, 9.55f,
-                woodTextured(0.42f, 0.34f, 0.27f, 40f), attrs);
-        models.add(new ModelInstance(railModel, 0f, 0.47f, 0f));
-
-        // Thin inner rails create a layered, furniture-grade edge around the felt.
-        Material innerRailMat = woodTextured(0.46f, 0.37f, 0.29f, 50f);
-        Model innerRailX = mb.createBox(16.80f, 0.075f, 0.12f, innerRailMat, attrs);
-        Model innerRailZ = mb.createBox(0.12f, 0.075f, 8.95f, innerRailMat, attrs);
-        models.add(new ModelInstance(innerRailX, 0f, 0.49f, -4.48f));
-        models.add(new ModelInstance(innerRailX, 0f, 0.49f,  4.48f));
-        models.add(new ModelInstance(innerRailZ, -8.34f, 0.49f, 0f));
-        models.add(new ModelInstance(innerRailZ,  8.34f, 0.49f, 0f));
+        // No overlay rail over the playfield. Keeping the playing surface as
+        // one visible mesh prevents the repeated-line artifact seen on mobile.
 
         // Subtle central divider shoulders, keeping the bar visually integrated.
         Model barShoulder = mb.createBox(
