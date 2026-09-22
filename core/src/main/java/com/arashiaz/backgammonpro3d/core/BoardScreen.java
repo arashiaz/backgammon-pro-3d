@@ -735,11 +735,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Six recessed face rectangles leave a continuous chamfer around every edge.
         addDieFace(p, new Vector3(0,h,0), Vector3.Y, s, b);
-        addDieFace(p, new Vector3(0,-h,0), Vector3.Y.scl(-1f), s, b);
+        addDieFace(p, new Vector3(0,-h,0), new Vector3(0,-1,0), s, b);
         addDieFace(p, new Vector3(h,0,0), Vector3.X, s, b);
-        addDieFace(p, new Vector3(-h,0,0), Vector3.X.scl(-1f), s, b);
+        addDieFace(p, new Vector3(-h,0,0), new Vector3(-1,0,0), s, b);
         addDieFace(p, new Vector3(0,0,h), Vector3.Z, s, b);
-        addDieFace(p, new Vector3(0,0,-h), Vector3.Z.scl(-1f), s, b);
+        addDieFace(p, new Vector3(0,0,-h), new Vector3(0,0,-1), s, b);
 
         // Fill the 12 chamfer strips.
         Material edge = new Material(
