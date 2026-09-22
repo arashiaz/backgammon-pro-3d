@@ -66,6 +66,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model diceEdgeModel;
     private Texture woodTexture;
     private Texture boardArtworkTexture;
+    private Texture proceduralWoodTexture;
 
     private float lastX, lastY;
     private boolean dragging;
@@ -98,7 +99,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         resetGameState();
 
         environment.set(new ColorAttribute(
-                ColorAttribute.AmbientLight, 0.50f, 0.50f, 0.48f, 1f));
+                ColorAttribute.AmbientLight, 0.34f, 0.32f, 0.30f, 1f));
         environment.add(new DirectionalLight().set(
                 0.92f, 0.86f, 0.74f, -0.55f, -1.0f, -0.35f));
         environment.add(new DirectionalLight().set(
@@ -113,6 +114,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
 
         woodTexture = new Texture(Gdx.files.internal("textures/board_wood_texture.jpg"), true);
+        proceduralWoodTexture = createNaturalWoodTexture(1024);
         buildBoard();
         updateCamera();
     }
@@ -404,6 +406,34 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
     }
 
+    private Texture createNaturalWoodTexture(int size) {
+        Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        for (int y = 0; y < size; y++) {
+            float v = y / (float)(size - 1);
+            for (int x = 0; x < size; x++) {
+                float u = x / (float)(size - 1);
+                float warp = 0.10f * (float)Math.sin(v * 10.0f + 1.7f * Math.sin(u * 7.0f));
+                float grain = (float)Math.sin(u * 34.0f + warp * 16.0f
+                        + 0.55f * Math.sin(u * 83.0f + v * 6.0f));
+                float broad = (float)Math.sin(u * 8.0f + v * 2.4f
+                        + 0.9f * Math.sin(v * 5.0f));
+                float n = 0.5f + 0.5f * grain;
+                float b = 0.5f + 0.5f * broad;
+                float value = 0.86f + n * 0.08f + b * 0.06f;
+                float r = MathUtils.clamp(0.34f * value, 0f, 1f);
+                float g = MathUtils.clamp(0.19f * value, 0f, 1f);
+                float bl = MathUtils.clamp(0.095f * value, 0f, 1f);
+                pm.setColor(r, g, bl, 1f);
+                pm.drawPixel(x, y);
+            }
+        }
+        Texture t = new Texture(pm, true);
+        t.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
+        t.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
+        pm.dispose();
+        return t;
+    }
+
     private Material wood(float r, float g, float b, float shine) {
         Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
         m.set(ColorAttribute.createSpecular(
@@ -452,17 +482,29 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 woodTextured(0.52f, 0.42f, 0.34f, 30f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
-        // Solid warm walnut playing surface. The previous board_wood_texture
-        // produced dense horizontal bands on this large face, so the playfield
-        // deliberately uses a clean base material; the real wood texture stays
-        // on the outer frame/rails where its scale is predictable.
+        // Warm walnut base plus a single, non-repeating procedural grain layer.
         playingSurfaceModel = mb.createBox(
                 18.35f, 0.34f, 9.95f,
                 new Material(
-                        ColorAttribute.createDiffuse(0.35f, 0.22f, 0.14f, 1f),
-                        ColorAttribute.createSpecular(0.20f, 0.16f, 0.12f, 1f),
-                        FloatAttribute.createShininess(16f)), attrs);
+                        ColorAttribute.createDiffuse(0.34f, 0.21f, 0.13f, 1f),
+                        ColorAttribute.createSpecular(0.16f, 0.12f, 0.09f, 1f),
+                        FloatAttribute.createShininess(18f)), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
+
+        Material grainMaterial = new Material(
+                TextureAttribute.createDiffuse(proceduralWoodTexture),
+                ColorAttribute.createDiffuse(0.72f, 0.58f, 0.43f, 0.34f),
+                FloatAttribute.createSpecular(0.10f, 0.075f, 0.05f, 1f),
+                FloatAttribute.createShininess(22f));
+        mb.begin();
+        MeshPartBuilder grain = mb.part("natural_wood_grain", GL20.GL_TRIANGLES, attrs, grainMaterial);
+        VertexInfo g1 = new VertexInfo().set(new Vector3(-8.78f, 0.195f, -4.52f), Vector3.Y, null, new Vector2(0f, 0f));
+        VertexInfo g2 = new VertexInfo().set(new Vector3( 8.78f, 0.195f, -4.52f), Vector3.Y, null, new Vector2(1f, 0f));
+        VertexInfo g3 = new VertexInfo().set(new Vector3( 8.78f, 0.195f,  4.52f), Vector3.Y, null, new Vector2(1f, 1f));
+        VertexInfo g4 = new VertexInfo().set(new Vector3(-8.78f, 0.195f,  4.52f), Vector3.Y, null, new Vector2(0f, 1f));
+        grain.rect(g1, g2, g3, g4);
+        Model grainModel = mb.end();
+        models.add(new ModelInstance(grainModel));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
@@ -1154,6 +1196,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         uiFont.dispose();
         if (woodTexture != null) woodTexture.dispose();
         if (boardArtworkTexture != null) boardArtworkTexture.dispose();
+        if (proceduralWoodTexture != null) proceduralWoodTexture.dispose();
         if (floorModel != null) floorModel.dispose();
         if (baseModel != null) baseModel.dispose();
         if (playingSurfaceModel != null) playingSurfaceModel.dispose();
