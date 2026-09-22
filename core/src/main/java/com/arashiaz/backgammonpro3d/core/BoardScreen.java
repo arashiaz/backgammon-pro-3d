@@ -65,12 +65,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model diceTrayModel, screwModel;
     private Model diceEdgeModel;
     private Texture woodGrainTexture;
+    private Texture lightCheckerTexture, darkCheckerTexture, diceTexture;
     
     private float lastX, lastY;
     private boolean dragging;
     private float cameraAzimuth = 0f;
-    private float cameraElevation = 68f;
-    private float cameraDistance = 21.5f;
+    private float cameraElevation = 80f;
+    private float cameraDistance = 19.5f;
 
     private final Vector3 cameraTarget = new Vector3(0f, 0.25f, 0f);
     private final Vector3 tmp = new Vector3();
@@ -119,6 +120,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         woodGrainTexture.setWrap(
                 Texture.TextureWrap.Repeat,
                 Texture.TextureWrap.Repeat);
+        lightCheckerTexture = createPieceTexture(256, 0.86f, 0.78f, 0.60f, 0.54f, 0.42f, 0.25f, 101L);
+        darkCheckerTexture = createPieceTexture(256, 0.12f, 0.055f, 0.032f, 0.30f, 0.14f, 0.065f, 202L);
+        diceTexture = createPieceTexture(256, 0.92f, 0.88f, 0.76f, 0.72f, 0.62f, 0.45f, 303L);
         buildBoard();
         updateCamera();
     }
@@ -503,6 +507,35 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
 
+    private Texture createPieceTexture(int size, float br, float bg, float bb,
+                                       float vr, float vg, float vb, long seed) {
+        Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        float ox = (seed % 97) * 0.137f;
+        float oy = (seed % 53) * 0.193f;
+        for (int y = 0; y < size; y++) {
+            float v = y / (float)(size - 1);
+            for (int x = 0; x < size; x++) {
+                float u = x / (float)(size - 1);
+                float n1 = smoothNoise(u * 3.0f + ox, v * 3.0f + oy);
+                float n2 = smoothNoise(u * 8.0f + ox * 0.7f, v * 5.0f + oy * 0.8f);
+                float n3 = smoothNoise(u * 28.0f + ox, v * 28.0f + oy);
+                float vein = MathUtils.clamp(
+                        (n1 - 0.5f) * 0.55f + (n2 - 0.5f) * 0.22f + (n3 - 0.5f) * 0.06f,
+                        -0.32f, 0.32f);
+                float r = MathUtils.clamp(br + (vr - br) * (0.48f + vein), 0f, 1f);
+                float g = MathUtils.clamp(bg + (vg - bg) * (0.48f + vein), 0f, 1f);
+                float b = MathUtils.clamp(bb + (vb - bb) * (0.48f + vein), 0f, 1f);
+                pm.setColor(r, g, b, 1f);
+                pm.drawPixel(x, y);
+            }
+        }
+        Texture tex = new Texture(pm, true);
+        tex.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
+        tex.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        pm.dispose();
+        return tex;
+    }
+
     private Material surface(float r, float g, float b) {
         Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
         m.set(ColorAttribute.createSpecular(0.12f, 0.10f, 0.08f, 1f));
@@ -530,7 +563,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // coplanar/intersecting panels that can create mobile depth artifacts.
         playingSurfaceModel = mb.createBox(
                 17.72f, 0.20f, 9.12f,
-                woodTextured(0.46f, 0.22f, 0.095f, 18f), attrs);
+                surface(0.19f, 0.34f, 0.32f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.36f, 0f));
 
         // No overlay rail over the playfield. Keeping the playing surface as
@@ -560,20 +593,20 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Classic flat points: no wood texture is applied to these meshes.
         darkPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.30f, 0.16f, 0.085f, 1f),
+                        ColorAttribute.createDiffuse(0.055f, 0.12f, 0.18f, 1f),
                         ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
                         FloatAttribute.createShininess(8f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.255f, 0.125f, 0.055f, 1f),
+                        ColorAttribute.createDiffuse(0.045f, 0.095f, 0.145f, 1f),
                         ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
                         FloatAttribute.createShininess(6f)), attrs);
         lightPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.78f, 0.66f, 0.46f, 1f),
+                        ColorAttribute.createDiffuse(0.88f, 0.84f, 0.70f, 1f),
                         ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
                         FloatAttribute.createShininess(8f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.64f, 0.50f, 0.31f, 1f),
+                        ColorAttribute.createDiffuse(0.76f, 0.70f, 0.54f, 1f),
                         ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
                         FloatAttribute.createShininess(6f)), attrs);
 
@@ -592,7 +625,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Shared checker meshes. High radial resolution keeps the circular
         // silhouette clean on modern phone displays while remaining lightweight.
-        darkChecker = createBeveledCheckerModel(
+        darkChecker = createBeveledCheckerModel(darkCheckerTexture,
                 new Material(
                         ColorAttribute.createDiffuse(0.105f, 0.095f, 0.090f, 1f),
                         ColorAttribute.createSpecular(0.16f, 0.15f, 0.14f, 1f),
@@ -607,7 +640,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         FloatAttribute.createShininess(92f)),
                 attrs);
 
-        lightChecker = createBeveledCheckerModel(
+        lightChecker = createBeveledCheckerModel(lightCheckerTexture,
                 new Material(
                         ColorAttribute.createDiffuse(0.88f, 0.82f, 0.70f, 1f),
                         ColorAttribute.createSpecular(0.58f, 0.52f, 0.43f, 1f),
@@ -622,7 +655,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         FloatAttribute.createShininess(86f)),
                 attrs);
 
-        diceModel = createBeveledDieModel(attrs);
+        diceModel = createBeveledDieModel(diceTexture, attrs);
         dieDotModel = mb.createCylinder(
                 0.105f, 0.020f, 0.105f, 32,
                 new Material(
@@ -719,12 +752,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         rebuildGameObjects();
     }
 
-    private Model createBeveledDieModel(long attrs) {
+    private Model createBeveledDieModel(Texture texture, long attrs) {
         // Keep the die body geometrically robust on mobile GPUs. The previous
         // hand-built chamfer mesh exposed gaps and read like stacked plates;
         // this clean rounded-looking cube is paired with smaller inset pips.
         Material m = new Material(
-                ColorAttribute.createDiffuse(0.93f, 0.91f, 0.86f, 1f),
+                TextureAttribute.createDiffuse(texture),
                 ColorAttribute.createSpecular(0.70f, 0.66f, 0.56f, 1f),
                 FloatAttribute.createShininess(68f));
         return mb.createBox(1.10f, 1.10f, 1.10f, m, attrs);
@@ -735,7 +768,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         p.triangle(a, c, d);
     }
 
-    private Model createBeveledCheckerModel(Material material, Material detailMaterial, Material rimMaterial, long attrs) {
+    private Model createBeveledCheckerModel(Texture topTexture, Material material, Material detailMaterial, Material rimMaterial, long attrs) {
         mb.begin();
         MeshPartBuilder p = mb.part("checker", GL20.GL_TRIANGLES, attrs, material);
 
@@ -771,12 +804,31 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             p.triangle(top0, topC1, top1);
             p.triangle(bot0, bot1, botC1);
             p.triangle(bot0, botC1, botC0);
-            p.triangle(new Vector3(0f, half + bevelY, 0f), top1, top0);
             p.triangle(new Vector3(0f, -half - bevelY, 0f), bot0, bot1);
             p.triangle(topC0, botC0, botC1);
             p.triangle(topC0, botC1, topC1);
             p.triangle(top0, top1, bot1);
             p.triangle(top0, bot1, bot0);
+        }
+
+        MeshPartBuilder top = mb.part("checker_top", GL20.GL_TRIANGLES, attrs,
+                new Material(
+                        TextureAttribute.createDiffuse(topTexture),
+                        ColorAttribute.createSpecular(0.50f, 0.46f, 0.38f, 1f),
+                        FloatAttribute.createShininess(70f)));
+        final float topRadius = radius - bevelRadius;
+        final Vector3 topCenter = new Vector3(0f, half + bevelY + 0.001f, 0f);
+        for (int i = 0; i < segments; i++) {
+            float a0 = MathUtils.PI2 * i / segments;
+            float a1 = MathUtils.PI2 * (i + 1) / segments;
+            Vector3 v0 = new Vector3(MathUtils.cos(a0) * topRadius, topCenter.y, MathUtils.sin(a0) * topRadius);
+            Vector3 v1 = new Vector3(MathUtils.cos(a1) * topRadius, topCenter.y, MathUtils.sin(a1) * topRadius);
+            VertexInfo c = new VertexInfo().set(topCenter, Vector3.Y, null, new Vector2(0.5f, 0.5f));
+            VertexInfo a = new VertexInfo().set(v1, Vector3.Y, null,
+                    new Vector2(0.5f + v1.x / (2f * topRadius), 0.5f + v1.z / (2f * topRadius)));
+            VertexInfo b = new VertexInfo().set(v0, Vector3.Y, null,
+                    new Vector2(0.5f + v0.x / (2f * topRadius), 0.5f + v0.z / (2f * topRadius)));
+            top.triangle(c, a, b);
         }
 
         // Integrated top medallion: one shared mesh per checker color, so
@@ -973,7 +1025,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         camera.lookAt(cameraTarget);
         camera.up.set(Vector3.Y);
-        camera.fieldOfView = 36f;
+        camera.fieldOfView = 32f;
         camera.near = 0.1f;
         camera.far = 100f;
         camera.update();
@@ -1182,6 +1234,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public void dispose() {
         if (woodGrainTexture != null) woodGrainTexture.dispose();
+        if (lightCheckerTexture != null) lightCheckerTexture.dispose();
+        if (darkCheckerTexture != null) darkCheckerTexture.dispose();
+        if (diceTexture != null) diceTexture.dispose();
         batch.dispose();
         uiShape.dispose();
         uiBatch.dispose();
