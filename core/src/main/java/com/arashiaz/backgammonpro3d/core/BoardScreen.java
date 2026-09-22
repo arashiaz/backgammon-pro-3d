@@ -523,7 +523,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // coplanar/intersecting panels that can create mobile depth artifacts.
         playingSurfaceModel = mb.createBox(
                 17.72f, 0.20f, 9.12f,
-                surface(0.075f, 0.045f, 0.030f), attrs);
+                woodTextured(0.46f, 0.22f, 0.095f, 18f), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.36f, 0f));
 
         // No overlay rail over the playfield. Keeping the playing surface as
