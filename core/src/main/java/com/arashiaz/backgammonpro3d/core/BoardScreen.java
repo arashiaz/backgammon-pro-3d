@@ -45,7 +45,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private final SpriteBatch uiBatch = new SpriteBatch();
     private final BitmapFont uiFont = new BitmapFont();
     private final GlyphLayout uiLayout = new GlyphLayout();
-    private final Rectangle rollButton = new Rectangle();
     private boolean uiTouch;
     private float downX, downY;
     private boolean dragged;
@@ -1152,25 +1151,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             uiFont.draw(uiBatch, uiLayout, cx - uiLayout.width * 0.5f, cy[i] + uiLayout.height * 0.5f);
         }
 
-        float buttonW = Math.min(360f, w * 0.30f);
-        float buttonH = 76f;
-        float buttonX = (w - buttonW) * 0.5f;
-        float buttonY = 22f;
-        rollButton.set(buttonX, buttonY, buttonW, buttonH);
-
-        uiShape.begin(ShapeRenderer.ShapeType.Filled);
-        uiShape.setColor(0.96f, 0.72f, 0.36f, 1f);
-        uiShape.rect(buttonX, buttonY, buttonW, buttonH);
-        uiShape.end();
-
-        uiBatch.end();
-
-        uiBatch.begin();
-        uiFont.getData().setScale(0.95f);
-        uiFont.setColor(0.18f, 0.13f, 0.22f, 1f);
-        String rollText = diceRollTime > 0f ? "ROLLING…" : "ROLL DICE";
-        uiLayout.setText(uiFont, rollText);
-        uiFont.draw(uiBatch, uiLayout, buttonX + buttonW * 0.5f - uiLayout.width * 0.5f, buttonY + buttonH * 0.58f);
+        // Dice are intentionally touch-driven. No permanent Roll button:
+        // tap the dice to roll, or swipe them to add throw strength.
         uiBatch.end();
     }
 
@@ -1211,11 +1193,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean touchUp(int x, int y, int pointer, int button) {
-        float uiY = Gdx.graphics.getHeight() - y;
-        if (!dragged && rollButton.contains(x, uiY) && !diceTouch) {
-            rollDice(0f);
-            return true;
-        }
         if (diceTouch) {
             if (!moveAnimating && diceRollTime <= 0f) {
                 if (diceRolled && !allDiceUsed()) {
