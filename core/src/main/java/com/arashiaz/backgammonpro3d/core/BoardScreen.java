@@ -465,6 +465,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 ColorAttribute.createDiffuse(1f, 1f, 1f, 1f));
         // A thin custom quad guarantees predictable 0..1 UVs on the visible top face.
         // createBox's generated UV layout differs between faces and can stretch the artwork.
+        mb.begin();
         MeshPartBuilder artwork = mb.part("board_artwork", GL20.GL_TRIANGLES, attrs, artworkMaterial);
         VertexInfo aa = new VertexInfo().set(new Vector3(-8.775f, 0.685f, -4.525f), Vector3.Y, null, new Vector2(0f, 0f));
         VertexInfo ab = new VertexInfo().set(new Vector3( 8.775f, 0.685f, -4.525f), Vector3.Y, null, new Vector2(1f, 0f));
