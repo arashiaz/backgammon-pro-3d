@@ -520,7 +520,9 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 woodTextured(0.52f, 0.42f, 0.34f, 30f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
-        // Warm walnut base plus a single, non-repeating procedural grain layer.
+        // Warm walnut base. The visible playfield is the top inner panel,
+        // so the procedural grain must sit ABOVE the felt/innerMat layer,
+        // not down at the hidden wooden base.
         playingSurfaceModel = mb.createBox(
                 18.35f, 0.34f, 9.95f,
                 new Material(
@@ -528,21 +530,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         ColorAttribute.createSpecular(0.16f, 0.12f, 0.09f, 1f),
                         FloatAttribute.createShininess(18f)), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.02f, 0f));
-
-        Material grainMaterial = new Material(
-                TextureAttribute.createDiffuse(proceduralWoodTexture),
-                ColorAttribute.createDiffuse(1f, 1f, 1f, 1f),
-                ColorAttribute.createSpecular(0.10f, 0.075f, 0.05f, 1f),
-                FloatAttribute.createShininess(22f));
-        mb.begin();
-        MeshPartBuilder grain = mb.part("natural_wood_grain", GL20.GL_TRIANGLES, attrs, grainMaterial);
-        VertexInfo g1 = new VertexInfo().set(new Vector3(-8.78f, 0.195f, -4.52f), Vector3.Y, null, new Vector2(0f, 0f));
-        VertexInfo g2 = new VertexInfo().set(new Vector3( 8.78f, 0.195f, -4.52f), Vector3.Y, null, new Vector2(1f, 0f));
-        VertexInfo g3 = new VertexInfo().set(new Vector3( 8.78f, 0.195f,  4.52f), Vector3.Y, null, new Vector2(1f, 1f));
-        VertexInfo g4 = new VertexInfo().set(new Vector3(-8.78f, 0.195f,  4.52f), Vector3.Y, null, new Vector2(0f, 1f));
-        grain.rect(g1, g2, g3, g4);
-        Model grainModel = mb.end();
-        models.add(new ModelInstance(grainModel));
 
         // Warm cloth/felt inset.
         Model felt = mb.createBox(
@@ -559,6 +546,24 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 17.55f, 0.08f, 9.05f,
                 surface(0.050f, 0.042f, 0.036f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
+
+        // Visible natural walnut grain layer: just above the inner panel and
+        // below the raised points/checkers. This is intentionally subtle.
+        Material grainMaterial = new Material(
+                TextureAttribute.createDiffuse(proceduralWoodTexture),
+                ColorAttribute.createDiffuse(0.92f, 0.78f, 0.60f, 1f),
+                ColorAttribute.createSpecular(0.06f, 0.045f, 0.03f, 1f),
+                FloatAttribute.createShininess(14f));
+        mb.begin();
+        MeshPartBuilder grain = mb.part("visible_natural_wood_grain", GL20.GL_TRIANGLES, attrs, grainMaterial);
+        float gy = 0.448f;
+        VertexInfo g1 = new VertexInfo().set(new Vector3(-8.70f, gy, -4.42f), Vector3.Y, null, new Vector2(0f, 0f));
+        VertexInfo g2 = new VertexInfo().set(new Vector3( 8.70f, gy, -4.42f), Vector3.Y, null, new Vector2(1f, 0f));
+        VertexInfo g3 = new VertexInfo().set(new Vector3( 8.70f, gy,  4.42f), Vector3.Y, null, new Vector2(1f, 1f));
+        VertexInfo g4 = new VertexInfo().set(new Vector3(-8.70f, gy,  4.42f), Vector3.Y, null, new Vector2(0f, 1f));
+        grain.rect(g1, g2, g3, g4);
+        Model grainModel = mb.end();
+        models.add(new ModelInstance(grainModel));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
         Material innerRailMat = woodTextured(0.46f, 0.37f, 0.29f, 50f);
