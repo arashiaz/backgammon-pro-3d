@@ -594,30 +594,30 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.075f, 0.065f, 0.060f, 1f),
-                        ColorAttribute.createSpecular(0.24f, 0.22f, 0.20f, 1f),
+                        ColorAttribute.createDiffuse(0.105f, 0.095f, 0.090f, 1f),
+                        ColorAttribute.createSpecular(0.16f, 0.15f, 0.14f, 1f),
                         FloatAttribute.createShininess(58f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.16f, 0.145f, 0.13f, 1f),
+                        ColorAttribute.createDiffuse(0.22f, 0.205f, 0.19f, 1f),
                         ColorAttribute.createSpecular(0.38f, 0.34f, 0.30f, 1f),
                         FloatAttribute.createShininess(78f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.30f, 0.25f, 0.20f, 1f),
+                        ColorAttribute.createDiffuse(0.38f, 0.29f, 0.22f, 1f),
                         ColorAttribute.createSpecular(0.48f, 0.40f, 0.31f, 1f),
                         FloatAttribute.createShininess(92f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.78f, 0.70f, 0.57f, 1f),
+                        ColorAttribute.createDiffuse(0.88f, 0.82f, 0.70f, 1f),
                         ColorAttribute.createSpecular(0.58f, 0.52f, 0.43f, 1f),
                         FloatAttribute.createShininess(58f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.92f, 0.84f, 0.69f, 1f),
+                        ColorAttribute.createDiffuse(0.97f, 0.92f, 0.80f, 1f),
                         ColorAttribute.createSpecular(0.70f, 0.62f, 0.49f, 1f),
                         FloatAttribute.createShininess(76f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.55f, 0.45f, 0.34f, 1f),
+                        ColorAttribute.createDiffuse(0.66f, 0.50f, 0.34f, 1f),
                         ColorAttribute.createSpecular(0.48f, 0.40f, 0.30f, 1f),
                         FloatAttribute.createShininess(86f)),
                 attrs);
@@ -740,10 +740,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         MeshPartBuilder p = mb.part("checker", GL20.GL_TRIANGLES, attrs, material);
 
         final int segments = 64;
-        final float radius = 0.50f;
-        final float bevelRadius = 0.082f;
-        final float half = 0.205f;
-        final float bevelY = 0.072f;
+        final float radius = 0.54f;
+        final float bevelRadius = 0.060f;
+        final float half = 0.185f;
+        final float bevelY = 0.055f;
 
         for (int i = 0; i < segments; i++) {
             float a0 = MathUtils.PI2 * i / segments;
@@ -783,14 +783,14 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // the detailing follows every animated checker without extra objects.
         MeshPartBuilder detail = mb.part("checker_detail", GL20.GL_TRIANGLES, attrs, detailMaterial);
         final float detailY = half + bevelY + 0.006f;
-        addDisc(detail, 0.235f, detailY, 48);
-        addRing(detail, 0.345f, 0.315f, detailY + 0.002f, 64);
+        addDisc(detail, 0.205f, detailY, 48);
+        addRing(detail, 0.395f, 0.350f, detailY + 0.002f, 64);
 
         // Thin circumferential bands catch the key light and make the bevel
         // read as machined material rather than a flat cylinder.
         MeshPartBuilder rim = mb.part("checker_rim", GL20.GL_TRIANGLES, attrs, rimMaterial);
-        addCylinderBand(rim, 0.503f, 0.150f, 0.174f, 64);
-        addCylinderBand(rim, 0.503f, -0.174f, -0.150f, 64);
+        addCylinderBand(rim, 0.542f, 0.135f, 0.160f, 64);
+        addCylinderBand(rim, 0.542f, -0.160f, -0.135f, 64);
 
         return mb.end();
     }
