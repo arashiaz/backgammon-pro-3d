@@ -220,8 +220,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         addStateStacks();
 
-        dieInstanceA = new ModelInstance(diceModel, -0.48f, 0.86f, 0f);
-        dieInstanceB = new ModelInstance(diceModel,  0.48f, 0.86f, 0f);
+        dieInstanceA = new ModelInstance(diceModel, -0.48f, 1.12f, 0f);
+        dieInstanceB = new ModelInstance(diceModel,  0.48f, 1.12f, 0f);
         dieInstanceA.transform.rotate(Vector3.Y, -9f);
         dieInstanceB.transform.rotate(Vector3.Y, 12f);
         gameObjects.add(dieInstanceA); models.add(dieInstanceA);
@@ -230,8 +230,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // only after the final face is settled, so they never float while the
         // cube spins. The final face is rebuilt atomically when the animation ends.
         if (diceRollTime <= 0f) {
-            if (dice[0] > 0) addTopPips(-0.48f, 1.245f, 0f, dice[0]);
-            if (dice[1] > 0) addTopPips( 0.48f, 1.245f, 0f, dice[1]);
+            if (dice[0] > 0) addTopPips(-0.48f, 1.232f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 0.48f, 1.232f, 0f, dice[1]);
         }
     }
 
