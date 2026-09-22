@@ -66,7 +66,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model diceEdgeModel;
     private Texture woodTexture;
     private Texture boardArtworkTexture;
-    private Texture proceduralWoodTexture;
 
     private float lastX, lastY;
     private boolean dragging;
@@ -113,7 +112,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         environment.add(new DirectionalLight().set(
                 0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
 
-        proceduralWoodTexture = createNaturalWoodTexture(1024);
         buildBoard();
         updateCamera();
     }
@@ -480,14 +478,14 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Material woodTextured(float r, float g, float b, float shine) {
-        Material m = new Material(
-                TextureAttribute.createDiffuse(proceduralWoodTexture),
-                ColorAttribute.createDiffuse(r, g, b, 1f),
-                ColorAttribute.createSpecular(
-                        Math.min(1f, r + 0.14f),
-                        Math.min(1f, g + 0.14f),
-                        Math.min(1f, b + 0.14f), 1f),
-                FloatAttribute.createShininess(shine));
+        // Deliberately texture-free: the previous procedural grain produced
+        // distracting horizontal banding/moire on the mobile display.
+        Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
+        m.set(ColorAttribute.createSpecular(
+                Math.min(1f, r + 0.14f),
+                Math.min(1f, g + 0.14f),
+                Math.min(1f, b + 0.14f), 1f));
+        m.set(FloatAttribute.createShininess(shine));
         return m;
     }
 
@@ -1204,7 +1202,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         uiFont.dispose();
         if (woodTexture != null) woodTexture.dispose();
         if (boardArtworkTexture != null) boardArtworkTexture.dispose();
-        if (proceduralWoodTexture != null) proceduralWoodTexture.dispose();
         if (floorModel != null) floorModel.dispose();
         if (baseModel != null) baseModel.dispose();
         if (playingSurfaceModel != null) playingSurfaceModel.dispose();
