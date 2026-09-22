@@ -539,22 +539,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 woodTextured(0.42f, 0.34f, 0.27f, 40f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
-        // The board artwork is a true 2D surface with explicit 0..1 UVs.
-        // Using a ModelBuilder box here distorted the artwork because LibGDX's
-        // generated box UVs are per-face. The custom plane keeps every triangle,
-        // border and medallion at its intended proportions.
-        boardArtworkTexture = createBoardArtworkTexture();
-        Material boardArtworkMaterial = new Material(
-                TextureAttribute.createDiffuse(boardArtworkTexture),
-                ColorAttribute.createDiffuse(1f, 1f, 1f, 1f),
-                ColorAttribute.createSpecular(0.16f, 0.11f, 0.07f, 1f),
-                FloatAttribute.createShininess(22f));
         Model innerMat = mb.createBox(
                 17.55f, 0.08f, 9.05f,
-                surface(0.050f, 0.035f, 0.025f), attrs);
+                surface(0.050f, 0.042f, 0.036f), attrs);
         models.add(new ModelInstance(innerMat, 0f, 0.405f, 0f));
-        Model artworkPlane = createArtworkPlane(boardArtworkMaterial, attrs);
-        models.add(new ModelInstance(artworkPlane, 0f, 0.458f, 0f));
 
         // Thin inner rails create a layered, furniture-grade edge around the felt.
         Material innerRailMat = woodTextured(0.46f, 0.37f, 0.29f, 50f);
@@ -585,6 +573,39 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Material barCapMaterial = wood(0.34f, 0.11f, 0.022f, 46f);
         Model barCap = mb.createBox(0.28f, 0.035f, 8.35f, barCapMaterial, attrs);
         models.add(new ModelInstance(barCap, 0f, 0.665f, 0f));
+
+        // Classic flat points: no wood texture is applied to these meshes.
+        darkPointModel = createPointModel(
+                new Material(
+                        ColorAttribute.createDiffuse(0.30f, 0.16f, 0.085f, 1f),
+                        ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
+                        FloatAttribute.createShininess(8f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.255f, 0.125f, 0.055f, 1f),
+                        ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
+                        FloatAttribute.createShininess(6f)), attrs);
+        lightPointModel = createPointModel(
+                new Material(
+                        ColorAttribute.createDiffuse(0.78f, 0.66f, 0.46f, 1f),
+                        ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
+                        FloatAttribute.createShininess(8f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.64f, 0.50f, 0.31f, 1f),
+                        ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
+                        FloatAttribute.createShininess(6f)), attrs);
+
+        for (int i = 0; i < 12; i++) {
+            ModelInstance bottomPoint = new ModelInstance(
+                    (i % 2 == 0) ? darkPointModel : lightPointModel,
+                    XS[i], 0.55f, -2.55f);
+            bottomPoint.transform.rotate(Vector3.Y, 180f);
+            models.add(bottomPoint);
+
+            ModelInstance topPoint = new ModelInstance(
+                    (i % 2 == 0) ? lightPointModel : darkPointModel,
+                    XS[i], 0.55f, 2.55f);
+            models.add(topPoint);
+        }
 
         // Shared checker meshes. High radial resolution keeps the circular
         // silhouette clean on modern phone displays while remaining lightweight.
@@ -727,10 +748,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void triQuad(MeshPartBuilder p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) {
-        // Camera views the board from +Y, so keep the triangle winding
-        // consistent with the +Y normal (front-face toward the player).
-        p.triangle(a, c, b);
-        p.triangle(a, d, c);
+        p.triangle(a, b, c);
+        p.triangle(a, c, d);
     }
 
     private Model createBeveledCheckerModel(Material material, Material detailMaterial, Material rimMaterial, long attrs) {
@@ -829,86 +848,36 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
     }
 
-    private Model createArtworkPlane(Material material, long attrs) {
-        mb.begin();
-        MeshPartBuilder p = mb.part("board_artwork", GL20.GL_TRIANGLES, attrs, material);
-        float hx = 8.775f;
-        float hz = 4.525f;
-        VertexInfo a = new VertexInfo().set(
-                new Vector3(-hx, 0f, -hz), Vector3.Y, null, new Vector2(0f, 1f));
-        VertexInfo b = new VertexInfo().set(
-                new Vector3( hx, 0f, -hz), Vector3.Y, null, new Vector2(1f, 1f));
-        VertexInfo c = new VertexInfo().set(
-                new Vector3( hx, 0f,  hz), Vector3.Y, null, new Vector2(1f, 0f));
-        VertexInfo d = new VertexInfo().set(
-                new Vector3(-hx, 0f,  hz), Vector3.Y, null, new Vector2(0f, 0f));
-        p.triangle(a, b, c);
-        p.triangle(a, c, d);
-        return mb.end();
-    }
-
     private Texture createBoardArtworkTexture() {
-        // One non-repeating 2D board face. It is generated once and mapped
-        // across the playfield, eliminating UV tiling and stripe artifacts.
         final int W = 1024, H = 512;
         Pixmap p = new Pixmap(W, H, Pixmap.Format.RGBA8888);
-
         for (int y = 0; y < H; y++) {
-            float v = y / (float)(H - 1);
             for (int x = 0; x < W; x++) {
-                float u = x / (float)(W - 1);
-                float broad = smoothNoise(u * 3.8f, v * 1.35f);
-                float medium = smoothNoise(u * 11.0f + 8.0f, v * 3.2f + 4.0f);
-                float fine = smoothNoise(u * 28.0f + 17.0f, v * 7.0f + 11.0f);
-                float grain = broad * 0.58f + medium * 0.30f + fine * 0.12f;
-                float warm = 0.78f + (grain - 0.5f) * 0.34f;
-                p.setColor(
-                        MathUtils.clamp(0.24f * warm, 0f, 1f),
-                        MathUtils.clamp(0.105f * warm, 0f, 1f),
-                        MathUtils.clamp(0.045f * warm, 0f, 1f), 1f);
+                float wave = (float)Math.sin(x * 0.035f + Math.sin(y * 0.018f) * 2.2f);
+                float fine = (float)Math.sin(x * 0.17f + y * 0.012f);
+                float n = wave * 0.018f + fine * 0.008f;
+                p.setColor(new Color(0.29f + n, 0.145f + n * 0.65f, 0.075f + n * 0.40f, 1f));
                 p.drawPixel(x, y);
             }
         }
+        p.setColor(new Color(0.32f, 0.18f, 0.10f, 1f));
+        p.fillRectangle(52, 24, 430, 464);
+        p.fillRectangle(542, 24, 430, 464);
 
-        // Recessed play areas.
-        p.setColor(0.16f, 0.065f, 0.032f, 1f);
-        p.fillRectangle(28, 18, 456, 476);
-        p.fillRectangle(540, 18, 456, 476);
-        p.setColor(0.075f, 0.050f, 0.038f, 1f);
-        p.fillRectangle(42, 30, 428, 452);
-        p.fillRectangle(554, 30, 428, 452);
-
-        // Traditional alternating points: muted maple and deep mahogany.
-        final float[] light = {0.72f, 0.48f, 0.25f};
-        final float[] dark = {0.31f, 0.105f, 0.045f};
-        final int top = 42, bottom = 470, tipTop = 224, tipBottom = 288;
-
+        float[] light = {0.79f, 0.58f, 0.32f};
+        float[] dark = {0.34f, 0.075f, 0.045f};
+        int left = 62, top = 36, bottom = 476, center = 256;
         for (int side = 0; side < 2; side++) {
-            int sx = side == 0 ? 48 : 560;
+            int sx = side == 0 ? left : 542;
             for (int i = 0; i < 6; i++) {
-                int x0 = sx + i * 71;
-                int x1 = x0 + 71;
-                drawTri(p, x0, top, x1, top, (i % 2 == 0) ? light : dark, tipTop);
-                drawTri(p, x0, bottom, x1, bottom, (i % 2 == 0) ? dark : light, tipBottom);
+                int x0 = sx + i * 70, x1 = x0 + 70;
+                drawTri(p, x0, top, x1, top, (i % 2 == 0) ? light : dark, center - 8);
+                drawTri(p, x0, bottom, x1, bottom, (i % 2 == 0) ? dark : light, center + 8);
             }
         }
-
-        // Central bar and a restrained brass inlay.
-        p.setColor(0.10f, 0.035f, 0.018f, 1f);
-        p.fillRectangle(496, 26, 32, 460);
-        p.setColor(0.56f, 0.31f, 0.10f, 1f);
-        p.fillRectangle(506, 32, 5, 448);
-
         drawMedallion(p, 256, 256);
         drawMedallion(p, 768, 256);
-
-        p.setColor(0.50f, 0.30f, 0.13f, 1f);
-        p.drawRectangle(40, 28, 432, 456);
-        p.drawRectangle(552, 28, 432, 456);
-
         Texture result = new Texture(p, true);
-        result.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-        result.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
         p.dispose();
         return result;
     }
