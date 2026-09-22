@@ -727,8 +727,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private void triQuad(MeshPartBuilder p, Vector3 a, Vector3 b, Vector3 c, Vector3 d) {
-        p.triangle(a, b, c);
-        p.triangle(a, c, d);
+        // Camera views the board from +Y, so keep the triangle winding
+        // consistent with the +Y normal (front-face toward the player).
+        p.triangle(a, c, b);
+        p.triangle(a, d, c);
     }
 
     private Model createBeveledCheckerModel(Material material, Material detailMaterial, Material rimMaterial, long attrs) {
