@@ -483,6 +483,36 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         return tex;
     }
 
+    /** Consistent Android-friendly material pipeline built on LibGDX DefaultShader. */
+    private Material material(Texture albedo, float r, float g, float b,
+                              float sr, float sg, float sb, float shininess) {
+        Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
+        if (albedo != null) m.set(TextureAttribute.createDiffuse(albedo));
+        m.set(ColorAttribute.createSpecular(sr, sg, sb, 1f));
+        m.set(FloatAttribute.createShininess(shininess));
+        return m;
+    }
+
+    private Material mahoganyMaterial(float r, float g, float b) {
+        return material(woodGrainTexture, r, g, b, 0.42f, 0.27f, 0.20f, 44f);
+    }
+
+    private Material playingWoodMaterial() {
+        return material(woodGrainTexture, 0.64f, 0.43f, 0.27f, 0.30f, 0.20f, 0.14f, 34f);
+    }
+
+    private Material glossyDarkResinMaterial() {
+        return material(darkCheckerTexture, 0.34f, 0.16f, 0.09f, 0.76f, 0.58f, 0.43f, 112f);
+    }
+
+    private Material glossyIvoryResinMaterial() {
+        return material(lightCheckerTexture, 0.92f, 0.86f, 0.74f, 0.78f, 0.70f, 0.57f, 96f);
+    }
+
+    private Material boneDiceMaterial() {
+        return material(diceTexture, 0.91f, 0.83f, 0.68f, 0.82f, 0.74f, 0.59f, 88f);
+    }
+
     private Material wood(float r, float g, float b, float shine) {
         Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
         m.set(ColorAttribute.createSpecular(
@@ -673,7 +703,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // physically seated on the board instead of floating above it.
         diceTrayModel = mb.createBox(
                 2.55f, 0.07f, 1.55f,
-                wood(0.12f, 0.045f, 0.018f, 26f), attrs);
+                mahoganyMaterial(0.20f, 0.065f, 0.028f), attrs);
         models.add(new ModelInstance(diceTrayModel, 0f, 0.66f, 0f));
 
         Model diceTrayInset = mb.createBox(
@@ -683,7 +713,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Raised brass trim around the dice well gives the center a crafted,
         // furniture-like finish while keeping the dice area visually clean.
-        Material trayTrim = wood(0.66f, 0.34f, 0.075f, 48f);
+        Material trayTrim = mahoganyMaterial(0.68f, 0.30f, 0.075f);
         Model trayTrimX = mb.createBox(2.38f, 0.045f, 0.06f, trayTrim, attrs);
         Model trayTrimZ = mb.createBox(0.06f, 0.045f, 1.25f, trayTrim, attrs);
         models.add(new ModelInstance(trayTrimX, 0f, 0.79f, -0.64f));
