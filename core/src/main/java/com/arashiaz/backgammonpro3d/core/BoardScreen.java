@@ -97,19 +97,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         resetGameState();
 
         environment.set(new ColorAttribute(
-                ColorAttribute.AmbientLight, 0.27f, 0.24f, 0.21f, 1f));
+                ColorAttribute.AmbientLight, 0.38f, 0.37f, 0.35f, 1f));
+        // Warm room light: the main source that defines checker bevels and wood depth.
         environment.add(new DirectionalLight().set(
-                1.05f, 0.92f, 0.72f, -0.55f, -1.0f, -0.35f));
+                1.12f, 0.98f, 0.82f, -0.48f, -1.0f, -0.34f));
+        // Very restrained cool fill prevents dark materials from collapsing to black.
         environment.add(new DirectionalLight().set(
-                0.28f, 0.34f, 0.48f, 0.55f, -0.45f, 0.65f));
-        // A focused warm key and a restrained cool rim give the wood and
-        // checker bevels readable depth without requiring expensive shadows.
-        environment.add(new DirectionalLight().set(
-                0.50f, 0.34f, 0.18f, -0.25f, -0.75f, 0.82f));
-        // A soft frontal fill keeps the dark checkers readable while preserving
-        // the stronger warm key on the wood.
-        environment.add(new DirectionalLight().set(
-                0.20f, 0.22f, 0.28f, 0.10f, -0.55f, -0.92f));
+                0.18f, 0.22f, 0.28f, 0.52f, -0.50f, 0.62f));
 
         woodGrainTexture = new Texture(
                 Gdx.files.internal("textures/board_wood_texture.jpg"), true);
@@ -119,7 +113,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         woodGrainTexture.setWrap(
                 Texture.TextureWrap.Repeat,
                 Texture.TextureWrap.Repeat);
-        lightCheckerTexture = createPieceTexture(256, 0.88f, 0.68f, 0.34f, 0.98f, 0.86f, 0.54f, 101L);
+        lightCheckerTexture = createPieceTexture(256, 0.90f, 0.72f, 0.42f, 0.98f, 0.88f, 0.62f, 101L);
         darkCheckerTexture = createPieceTexture(256, 0.16f, 0.075f, 0.045f, 0.42f, 0.20f, 0.12f, 202L);
         diceTexture = createPieceTexture(256, 0.86f, 0.78f, 0.62f, 0.96f, 0.88f, 0.72f, 303L);
         buildBoard();
@@ -626,28 +620,28 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(darkCheckerTexture,
                 new Material(
-                        ColorAttribute.createDiffuse(0.105f, 0.095f, 0.090f, 1f),
-                        ColorAttribute.createSpecular(0.16f, 0.15f, 0.14f, 1f),
-                        FloatAttribute.createShininess(58f)),
+                        ColorAttribute.createDiffuse(0.075f, 0.045f, 0.035f, 1f),
+                        ColorAttribute.createSpecular(0.62f, 0.54f, 0.46f, 1f),
+                        FloatAttribute.createShininess(86f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.22f, 0.205f, 0.19f, 1f),
-                        ColorAttribute.createSpecular(0.38f, 0.34f, 0.30f, 1f),
-                        FloatAttribute.createShininess(78f)),
+                        ColorAttribute.createDiffuse(0.26f, 0.14f, 0.095f, 1f),
+                        ColorAttribute.createSpecular(0.76f, 0.66f, 0.54f, 1f),
+                        FloatAttribute.createShininess(104f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.38f, 0.29f, 0.22f, 1f),
-                        ColorAttribute.createSpecular(0.48f, 0.40f, 0.31f, 1f),
-                        FloatAttribute.createShininess(92f)),
+                        ColorAttribute.createDiffuse(0.46f, 0.27f, 0.16f, 1f),
+                        ColorAttribute.createSpecular(0.86f, 0.72f, 0.55f, 1f),
+                        FloatAttribute.createShininess(118f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(lightCheckerTexture,
                 new Material(
-                        ColorAttribute.createDiffuse(0.88f, 0.82f, 0.70f, 1f),
-                        ColorAttribute.createSpecular(0.58f, 0.52f, 0.43f, 1f),
-                        FloatAttribute.createShininess(58f)),
+                        ColorAttribute.createDiffuse(0.90f, 0.84f, 0.72f, 1f),
+                        ColorAttribute.createSpecular(0.72f, 0.66f, 0.55f, 1f),
+                        FloatAttribute.createShininess(78f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.97f, 0.92f, 0.80f, 1f),
-                        ColorAttribute.createSpecular(0.70f, 0.62f, 0.49f, 1f),
-                        FloatAttribute.createShininess(76f)),
+                        ColorAttribute.createDiffuse(0.99f, 0.94f, 0.82f, 1f),
+                        ColorAttribute.createSpecular(0.84f, 0.76f, 0.60f, 1f),
+                        FloatAttribute.createShininess(96f)),
                 new Material(
                         ColorAttribute.createDiffuse(0.66f, 0.50f, 0.34f, 1f),
                         ColorAttribute.createSpecular(0.48f, 0.40f, 0.30f, 1f),
