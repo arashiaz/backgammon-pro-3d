@@ -448,7 +448,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
                 21.4f, 0.72f, 10.7f,
-                woodTextured(0.62f, 0.50f, 0.40f, 30f), attrs);
+                woodTextured(0.52f, 0.42f, 0.34f, 30f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.42f, 0f));
 
         playingSurfaceModel = mb.createBox(
@@ -464,7 +464,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         railModel = mb.createBox(
                 18.05f, 0.10f, 9.55f,
-                woodTextured(0.48f, 0.39f, 0.31f, 40f), attrs);
+                woodTextured(0.42f, 0.34f, 0.27f, 40f), attrs);
         models.add(new ModelInstance(railModel, 0f, 0.35f, 0f));
 
         Model innerMat = mb.createBox(
@@ -504,11 +504,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         // Real flat triangular points, not cones.
         darkPointModel = createPointModel(
-                wood(0.28f, 0.095f, 0.075f, 34f),
-                wood(0.38f, 0.14f, 0.11f, 42f), attrs);
+                surface(0.24f, 0.055f, 0.045f),
+                surface(0.34f, 0.085f, 0.070f), attrs);
         lightPointModel = createPointModel(
-                wood(0.74f, 0.54f, 0.34f, 34f),
-                wood(0.88f, 0.69f, 0.43f, 44f), attrs);
+                surface(0.62f, 0.43f, 0.23f),
+                surface(0.76f, 0.55f, 0.30f), attrs);
 
         float[] xs = XS;
 
@@ -599,7 +599,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // They remain part of the board shell, so the playfield keeps its clean silhouette.
         sideTrayModel = mb.createBox(
                 1.45f, 0.16f, 9.00f,
-                woodTextured(0.42f, 0.34f, 0.28f, 28f), attrs);
+                woodTextured(0.38f, 0.31f, 0.25f, 28f), attrs);
         sideTrayInsetModel = mb.createBox(
                 1.12f, 0.07f, 8.55f,
                 surface(0.055f, 0.018f, 0.010f), attrs);
@@ -609,7 +609,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(sideTrayInsetModel,  9.72f, 0.31f, 0f));
 
         // Thin walnut lips make the wells read as routed recesses.
-        Material trayLip = woodTextured(0.56f, 0.45f, 0.36f, 42f);
+        Material trayLip = woodTextured(0.48f, 0.39f, 0.31f, 42f);
         Model trayLipX = mb.createBox(0.08f, 0.075f, 8.72f, trayLip, attrs);
         models.add(new ModelInstance(trayLipX, -9.06f, 0.39f, 0f));
         models.add(new ModelInstance(trayLipX, -10.38f, 0.39f, 0f));
