@@ -63,8 +63,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model accentModel;
     private Model diceTrayModel, screwModel;
     private Model diceEdgeModel;
-    private Texture woodGrainTexture;
-    private Texture lightCheckerTexture, darkCheckerTexture, diceTexture;
+    private Texture woodGrainTexture, woodNormalTexture;
+    private Texture lightCheckerTexture, lightCheckerNormalTexture;
+    private Texture darkCheckerTexture, darkCheckerNormalTexture;
+    private Texture diceTexture, diceNormalTexture;
     
     private float lastX, lastY;
     private boolean dragging;
@@ -116,6 +118,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         lightCheckerTexture = createPieceTexture(256, 0.86f, 0.80f, 0.67f, 0.99f, 0.96f, 0.84f, 101L);
         darkCheckerTexture = createPieceTexture(256, 0.10f, 0.045f, 0.028f, 0.30f, 0.14f, 0.075f, 202L);
         diceTexture = createPieceTexture(256, 0.86f, 0.78f, 0.62f, 0.96f, 0.88f, 0.72f, 303L);
+        woodNormalTexture = createNormalTexture(256, 11f, 0.55f, 404L);
+        lightCheckerNormalTexture = createNormalTexture(256, 5f, 0.34f, 505L);
+        darkCheckerNormalTexture = createNormalTexture(256, 5f, 0.34f, 606L);
+        diceNormalTexture = createNormalTexture(256, 4f, 0.22f, 707L);
         buildBoard();
         updateCamera();
     }
@@ -438,6 +444,34 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         return (n & 0x7fffffff) / 2147483647f;
     }
 
+    private Texture createNormalTexture(int size, float frequency, float strength, long seed) {
+        Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        for (int y = 0; y < size; y++) for (int x = 0; x < size; x++) {
+            float u = x / (float)(size - 1), v = y / (float)(size - 1);
+            float hL = materialHeight(u - 1f / size, v, frequency, seed);
+            float hR = materialHeight(u + 1f / size, v, frequency, seed);
+            float hD = materialHeight(u, v - 1f / size, frequency, seed);
+            float hU = materialHeight(u, v + 1f / size, frequency, seed);
+            float nx = (hL - hR) * strength, ny = (hD - hU) * strength, nz = 1f;
+            float len = (float)Math.sqrt(nx * nx + ny * ny + nz * nz);
+            int r = (int)((nx / len * 0.5f + 0.5f) * 255f);
+            int g = (int)((ny / len * 0.5f + 0.5f) * 255f);
+            int b = (int)((nz / len * 0.5f + 0.5f) * 255f);
+            pm.drawPixel(x, y, Color.rgba8888(r / 255f, g / 255f, b / 255f, 1f));
+        }
+        Texture t = new Texture(pm, true);
+        t.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
+        t.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        pm.dispose();
+        return t;
+    }
+
+    private float materialHeight(float u, float v, float frequency, long seed) {
+        float x = u * frequency * 18f + (seed % 97) * 0.17f;
+        float y = v * frequency * 18f + (seed % 53) * 0.11f;
+        return smoothNoise(x, y) * 0.72f + smoothNoise(x * 2.7f, y * 2.7f) * 0.28f;
+    }
+
     private Texture createNaturalWoodTexture(int size) {
         // Soft, irregular walnut grain. The pattern is deliberately aperiodic:
         // no sine bands, no repeated horizontal stripes, and only subtle contrast.
@@ -484,33 +518,34 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     /** Consistent Android-friendly material pipeline built on LibGDX DefaultShader. */
-    private Material material(Texture albedo, float r, float g, float b,
+    private Material material(Texture albedo, Texture normal, float r, float g, float b,
                               float sr, float sg, float sb, float shininess) {
         Material m = new Material(ColorAttribute.createDiffuse(r, g, b, 1f));
         if (albedo != null) m.set(TextureAttribute.createDiffuse(albedo));
+        if (normal != null) m.set(TextureAttribute.createNormal(normal));
         m.set(ColorAttribute.createSpecular(sr, sg, sb, 1f));
         m.set(FloatAttribute.createShininess(shininess));
         return m;
     }
 
     private Material mahoganyMaterial(float r, float g, float b) {
-        return material(woodGrainTexture, r, g, b, 0.42f, 0.27f, 0.20f, 44f);
+        return material(woodGrainTexture, woodNormalTexture, r, g, b, 0.42f, 0.27f, 0.20f, 44f);
     }
 
     private Material playingWoodMaterial() {
-        return material(woodGrainTexture, 0.64f, 0.43f, 0.27f, 0.30f, 0.20f, 0.14f, 34f);
+        return material(woodGrainTexture, woodNormalTexture, 0.64f, 0.43f, 0.27f, 0.30f, 0.20f, 34f);
     }
 
     private Material glossyDarkResinMaterial() {
-        return material(darkCheckerTexture, 0.34f, 0.16f, 0.09f, 0.76f, 0.58f, 0.43f, 112f);
+        return material(darkCheckerTexture, darkCheckerNormalTexture, 0.34f, 0.16f, 0.09f, 0.76f, 0.58f, 0.43f, 112f);
     }
 
     private Material glossyIvoryResinMaterial() {
-        return material(lightCheckerTexture, 0.92f, 0.86f, 0.74f, 0.78f, 0.70f, 0.57f, 96f);
+        return material(lightCheckerTexture, lightCheckerNormalTexture, 0.92f, 0.86f, 0.74f, 0.78f, 0.70f, 0.57f, 96f);
     }
 
     private Material boneDiceMaterial() {
-        return material(diceTexture, 0.91f, 0.83f, 0.68f, 0.82f, 0.74f, 0.59f, 88f);
+        return material(diceTexture, diceNormalTexture, 0.91f, 0.83f, 0.68f, 0.82f, 0.74f, 0.59f, 88f);
     }
 
     private Material wood(float r, float g, float b, float shine) {
@@ -1319,9 +1354,13 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     @Override
     public void dispose() {
         if (woodGrainTexture != null) woodGrainTexture.dispose();
+        if (woodNormalTexture != null) woodNormalTexture.dispose();
         if (lightCheckerTexture != null) lightCheckerTexture.dispose();
+        if (lightCheckerNormalTexture != null) lightCheckerNormalTexture.dispose();
         if (darkCheckerTexture != null) darkCheckerTexture.dispose();
+        if (darkCheckerNormalTexture != null) darkCheckerNormalTexture.dispose();
         if (diceTexture != null) diceTexture.dispose();
+        if (diceNormalTexture != null) diceNormalTexture.dispose();
         batch.dispose();
         uiShape.dispose();
         uiBatch.dispose();
