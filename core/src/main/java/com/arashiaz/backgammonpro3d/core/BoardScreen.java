@@ -1106,42 +1106,81 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private void renderUi() {
         float w = Gdx.graphics.getWidth();
         float h = Gdx.graphics.getHeight();
-        float top = Math.min(94f, h * 0.14f);
+        float top = Math.min(74f, h * 0.12f);
 
         uiShape.begin(ShapeRenderer.ShapeType.Filled);
-        uiShape.setColor(0.045f, 0.035f, 0.030f, 0.97f);
+        uiShape.setColor(0.035f, 0.050f, 0.055f, 0.96f);
         uiShape.rect(0f, h - top, w, top);
-        uiShape.setColor(0.58f, 0.40f, 0.20f, 0.90f);
-        uiShape.rect(0f, h - top, w, 3f);
-        float centerW = Math.min(760f, w * 0.56f);
-        float left = (w - centerW) * 0.5f;
-        uiShape.setColor(0.22f, 0.16f, 0.10f, 0.96f);
-        uiShape.rect(left, h - top + 12f, centerW, top - 24f);
+        uiShape.setColor(0.78f, 0.64f, 0.34f, 0.82f);
+        uiShape.rect(0f, h - top, w, 2f);
+
+        float cardW = Math.min(250f, w * 0.20f);
+        float cardH = Math.min(58f, top - 10f);
+        float leftCardX = 20f;
+        float rightCardX = w - cardW - 20f;
+        float cardY = h - top + 5f;
+
+        uiShape.setColor(0.055f, 0.070f, 0.075f, 0.96f);
+        uiShape.roundRect(leftCardX, cardY, cardW, cardH, 12f);
+        uiShape.roundRect(rightCardX, cardY, cardW, cardH, 12f);
+
+        float turnW = Math.min(280f, w * 0.25f);
+        float turnX = (w - turnW) * 0.5f;
+        uiShape.setColor(0.06f, 0.075f, 0.08f, 0.92f);
+        uiShape.roundRect(turnX, cardY + 4f, turnW, cardH - 8f, 24f);
         uiShape.end();
 
         uiBatch.begin();
-        uiFont.setColor(0.91f, 0.76f, 0.48f, 1f);
-        uiFont.getData().setScale(1.30f);
-        uiFont.draw(uiBatch, "BACKGAMMON", 24f, h - 30f);
-        uiFont.getData().setScale(1.02f);
-        uiFont.setColor(0.96f, 0.92f, 0.82f, 1f);
-        uiFont.draw(uiBatch, "YOU", left + 28f, h - 34f);
-        uiFont.draw(uiBatch, "CPU", left + centerW - 72f, h - 34f);
-        uiFont.getData().setScale(1.22f);
-        uiFont.setColor(0.98f, 0.90f, 0.68f, 1f);
-        String diceText = diceRolled ? (diceRollTime > 0f ? "ROLLING" : dice[0] + "   " + dice[1]) : "—";
-        uiLayout.setText(uiFont, diceText);
-        uiFont.draw(uiBatch, uiLayout, left + centerW * 0.5f - uiLayout.width * 0.5f, h - 32f);
-        uiFont.getData().setScale(0.92f);
-        uiFont.setColor(0.76f, 0.70f, 0.60f, 1f);
-        String score = "BAR  " + lightBar + " / " + darkBar + "     OFF  " + lightOff + " / " + darkOff;
-        uiFont.draw(uiBatch, score, 24f, h - top - 16f);
-        if (statusTimer > 0f || !diceRolled) {
-            uiFont.setColor(0.78f, 0.80f, 0.84f, 1f);
-            String hint = !diceRolled ? "Tap or throw the dice" : status;
-            uiFont.draw(uiBatch, hint, 24f, 28f);
+        uiFont.getData().setScale(0.88f);
+        uiFont.setColor(0.88f, 0.86f, 0.79f, 1f);
+        uiFont.draw(uiBatch, "EASY", leftCardX + 20f, h - 25f);
+        uiFont.draw(uiBatch, "YOU", rightCardX + 20f, h - 25f);
+
+        uiFont.getData().setScale(0.72f);
+        uiFont.setColor(0.58f, 0.62f, 0.62f, 1f);
+        uiFont.draw(uiBatch, "SCORE  " + lightOff, leftCardX + 20f, h - 47f);
+        uiFont.draw(uiBatch, "SCORE  " + darkOff, rightCardX + 20f, h - 47f);
+
+        uiFont.getData().setScale(0.82f);
+        uiFont.setColor(0.97f, 0.92f, 0.78f, 1f);
+        uiLayout.setText(uiFont, lightTurn ? "YOUR TURN" : "CPU TURN");
+        uiFont.draw(uiBatch, uiLayout, turnX + turnW * 0.5f - uiLayout.width * 0.5f, cardY + cardH * 0.60f);
+
+        uiFont.getData().setScale(0.66f);
+        uiFont.setColor(0.58f, 0.61f, 0.61f, 1f);
+        uiFont.draw(uiBatch, "BAR  " + lightBar + " / " + darkBar, 18f, h - top - 12f);
+        uiFont.draw(uiBatch, "OFF  " + lightOff + " / " + darkOff, 105f, h - top - 12f);
+
+        // Left-side utility controls.
+        float cx = 42f;
+        float[] cy = {h * 0.30f, h * 0.42f, h * 0.54f};
+        String[] labels = {"≡", "⚙", "×1"};
+        for (int i = 0; i < labels.length; i++) {
+            uiFont.getData().setScale(i == 2 ? 0.68f : 1.05f);
+            uiFont.setColor(0.90f, 0.87f, 0.98f, 1f);
+            uiLayout.setText(uiFont, labels[i]);
+            uiFont.draw(uiBatch, uiLayout, cx - uiLayout.width * 0.5f, cy[i] + uiLayout.height * 0.5f);
         }
-        uiFont.getData().setScale(1.12f);
+
+        float buttonW = Math.min(360f, w * 0.30f);
+        float buttonH = 76f;
+        float buttonX = (w - buttonW) * 0.5f;
+        float buttonY = 22f;
+        rollButton.set(buttonX, buttonY, buttonW, buttonH);
+
+        uiShape.begin(ShapeRenderer.ShapeType.Filled);
+        uiShape.setColor(0.96f, 0.72f, 0.36f, 1f);
+        uiShape.roundRect(buttonX, buttonY, buttonW, buttonH, 24f);
+        uiShape.end();
+
+        uiBatch.end();
+
+        uiBatch.begin();
+        uiFont.getData().setScale(0.95f);
+        uiFont.setColor(0.18f, 0.13f, 0.22f, 1f);
+        String rollText = diceRollTime > 0f ? "ROLLING…" : "ROLL DICE";
+        uiLayout.setText(uiFont, rollText);
+        uiFont.draw(uiBatch, uiLayout, buttonX + buttonW * 0.5f - uiLayout.width * 0.5f, buttonY + buttonH * 0.58f);
         uiBatch.end();
     }
 
@@ -1182,6 +1221,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean touchUp(int x, int y, int pointer, int button) {
+        float uiY = Gdx.graphics.getHeight() - y;
+        if (!dragged && rollButton.contains(x, uiY) && !diceTouch) {
+            rollDice(0f);
+            return true;
+        }
         if (diceTouch) {
             if (!moveAnimating && diceRollTime <= 0f) {
                 if (diceRolled && !allDiceUsed()) {
