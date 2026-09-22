@@ -533,7 +533,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Material playingWoodMaterial() {
-        return material(woodGrainTexture, woodNormalTexture, 0.64f, 0.43f, 0.27f, 0.30f, 0.20f, 34f);
+        return material(woodGrainTexture, woodNormalTexture, 0.64f, 0.43f, 0.27f, 0.30f, 0.20f, 0.14f, 34f);
     }
 
     private Material glossyDarkResinMaterial() {
