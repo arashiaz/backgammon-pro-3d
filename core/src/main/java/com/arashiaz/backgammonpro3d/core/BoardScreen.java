@@ -115,9 +115,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         woodGrainTexture.setWrap(
                 Texture.TextureWrap.Repeat,
                 Texture.TextureWrap.Repeat);
-        lightCheckerTexture = createPieceTexture(256, 0.86f, 0.80f, 0.67f, 0.99f, 0.96f, 0.84f, 101L);
-        darkCheckerTexture = createPieceTexture(256, 0.10f, 0.045f, 0.028f, 0.30f, 0.14f, 0.075f, 202L);
-        diceTexture = createPieceTexture(256, 0.86f, 0.78f, 0.62f, 0.96f, 0.88f, 0.72f, 303L);
+        // Premium palette: warm aged ivory, deep oxblood resin, natural bone.
+        lightCheckerTexture = createPieceTexture(256, 0.90f, 0.84f, 0.72f, 1.00f, 0.97f, 0.88f, 101L);
+        darkCheckerTexture = createPieceTexture(256, 0.16f, 0.026f, 0.032f, 0.48f, 0.085f, 0.075f, 202L);
+        diceTexture = createPieceTexture(256, 0.91f, 0.82f, 0.67f, 0.99f, 0.91f, 0.76f, 303L);
         woodNormalTexture = createNormalTexture(256, 11f, 0.55f, 404L);
         lightCheckerNormalTexture = createNormalTexture(256, 5f, 0.34f, 505L);
         darkCheckerNormalTexture = createNormalTexture(256, 5f, 0.34f, 606L);
@@ -551,15 +552,15 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Material glossyDarkResinMaterial() {
-        return material(darkCheckerTexture, darkCheckerNormalTexture, 0.34f, 0.16f, 0.09f, 0.76f, 0.58f, 0.43f, 112f);
+        return material(darkCheckerTexture, darkCheckerNormalTexture, 0.42f, 0.075f, 0.070f, 0.92f, 0.48f, 0.40f, 132f);
     }
 
     private Material glossyIvoryResinMaterial() {
-        return material(lightCheckerTexture, lightCheckerNormalTexture, 0.92f, 0.86f, 0.74f, 0.78f, 0.70f, 0.57f, 96f);
+        return material(lightCheckerTexture, lightCheckerNormalTexture, 0.96f, 0.89f, 0.77f, 0.92f, 0.78f, 0.58f, 118f);
     }
 
     private Material boneDiceMaterial() {
-        return material(diceTexture, diceNormalTexture, 0.91f, 0.83f, 0.68f, 0.82f, 0.74f, 0.59f, 88f);
+        return material(diceTexture, diceNormalTexture, 0.96f, 0.87f, 0.69f, 0.94f, 0.80f, 0.60f, 104f);
     }
 
     private Material wood(float r, float g, float b, float shine) {
