@@ -253,30 +253,238 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         return false;
     }
 
+    /**
+     * Full move-order legality search for the current roll.
+     *
+     * Instead of looking only at the current board, this explores the legal
+     * continuations for the remaining dice. This matters for positions where
+     * playing die A first can make die B unavailable, while the reverse order
+     * allows both dice to be used.
+     */
     private boolean dieAllowedByTurn(int dieIndex) {
         if (dieIndex < 0 || dieIndex >= 4 || dieUsed[dieIndex]) return false;
-        int available = 0;
-        int larger = -1;
-        for (int d = 0; d < 4; d++) {
-            if (dieUsed[d]) continue;
-            if (hasAnyMoveForDie(dice[d])) {
-                available++;
-                larger = Math.max(larger, dice[d]);
-            }
-        }
-        // If only one distinct move remains possible, the rules require the
-        // larger die when both dice were rolled but only one can be played.
-        return available <= 1 || dice[dieIndex] == larger || hasAlternativeMove(dieIndex);
-    }
 
-    private boolean hasAlternativeMove(int chosenDieIndex) {
-        int chosen = dice[chosenDieIndex];
-        for (int d = 0; d < 4; d++) {
-            if (d == chosenDieIndex || dieUsed[d]) continue;
-            if (dice[d] == chosen && dieUsed[d]) continue;
-            if (hasAnyMoveForDie(dice[d])) return true;
+        RuleState state = captureRuleState();
+        int best = maxUsableMoves(state);
+
+        if (best <= 0) return false;
+
+        // When only one move can be made from a two-die roll, the larger
+        // playable number is mandatory. Doubles have four equivalent moves.
+        if (best == 1) {
+            int largestPlayable = -1;
+            boolean anyOtherValue = false;
+            for (int d = 0; d < 4; d++) {
+                if (state.used[d]) continue;
+                if (!hasLegalMove(state, d)) continue;
+                largestPlayable = Math.max(largestPlayable, dice[d]);
+                anyOtherValue = anyOtherValue || dice[d] != dice[dieIndex];
+            }
+            if (anyOtherValue && dice[dieIndex] != largestPlayable) return false;
+        }
+
+        // The selected die is legal only if there is a complete continuation
+        // that still reaches the maximum number of usable moves.
+        for (RuleMove move : legalMoves(state, dieIndex)) {
+            RuleState next = state.copy();
+            applyRuleMove(next, move);
+            next.used[dieIndex] = true;
+            if (1 + maxUsableMoves(next) == best) return true;
         }
         return false;
+    }
+
+    private static final class RuleState {
+        final int[] points = new int[24];
+        int lightBar, darkBar, lightOff, darkOff;
+        final boolean[] used = new boolean[4];
+
+        RuleState copy() {
+            RuleState s = new RuleState();
+            System.arraycopy(points, 0, s.points, 0, 24);
+            s.lightBar = lightBar;
+            s.darkBar = darkBar;
+            s.lightOff = lightOff;
+            s.darkOff = darkOff;
+            System.arraycopy(used, 0, s.used, 0, 4);
+            return s;
+        }
+    }
+
+    private static final class RuleMove {
+        final int from;
+        final int to;
+        final boolean bearOff;
+
+        RuleMove(int from, int to, boolean bearOff) {
+            this.from = from;
+            this.to = to;
+            this.bearOff = bearOff;
+        }
+    }
+
+    private RuleState captureRuleState() {
+        RuleState s = new RuleState();
+        System.arraycopy(points, 0, s.points, 0, 24);
+        s.lightBar = lightBar;
+        s.darkBar = darkBar;
+        s.lightOff = lightOff;
+        s.darkOff = darkOff;
+        System.arraycopy(dieUsed, 0, s.used, 0, 4);
+        return s;
+    }
+
+    private int stateBarCount(RuleState s) {
+        return lightTurn ? s.lightBar : s.darkBar;
+    }
+
+    private boolean stateOwns(RuleState s, int point) {
+        return point >= 0 && point < 24
+                && (lightTurn ? s.points[point] > 0 : s.points[point] < 0);
+    }
+
+    private boolean stateOpenPoint(RuleState s, int to) {
+        if (to < 0 || to >= 24) return false;
+        return lightTurn ? s.points[to] >= -1 : s.points[to] <= 1;
+    }
+
+    private int stateEntryPoint(int die) {
+        return lightTurn ? 24 - die : die - 1;
+    }
+
+    private boolean stateCanEnter(RuleState s, int die) {
+        int to = stateEntryPoint(die);
+        return die >= 1 && die <= 6 && stateOpenPoint(s, to);
+    }
+
+    private boolean stateAllHome(RuleState s) {
+        if (s.lightBar > 0 || s.darkBar > 0) return false;
+        if (lightTurn) {
+            for (int p = 0; p < 18; p++) if (s.points[p] > 0) return false;
+        } else {
+            for (int p = 6; p < 24; p++) if (s.points[p] < 0) return false;
+        }
+        return true;
+    }
+
+    private boolean stateCanBearOff(RuleState s, int from, int die) {
+        if (!stateOwns(s, from) || !stateAllHome(s)) return false;
+        if (lightTurn) {
+            int distance = 24 - from;
+            if (die == distance) return true;
+            if (die < distance) return false;
+            for (int p = from + 1; p < 24; p++) if (s.points[p] > 0) return false;
+            return true;
+        } else {
+            int distance = from + 1;
+            if (die == distance) return true;
+            if (die < distance) return false;
+            for (int p = from - 1; p >= 0; p--) if (s.points[p] < 0) return false;
+            return true;
+        }
+    }
+
+    private boolean stateCanMove(RuleState s, int from, int to, int die) {
+        if (!stateOwns(s, from) || !stateOpenPoint(s, to)) return false;
+        int distance = lightTurn ? to - from : from - to;
+        return distance == die;
+    }
+
+    private Array<RuleMove> legalMoves(RuleState s, int dieIndex) {
+        Array<RuleMove> result = new Array<>();
+        if (dieIndex < 0 || dieIndex >= 4 || s.used[dieIndex]) return result;
+
+        int die = dice[dieIndex];
+        if (die < 1 || die > 6) return result;
+
+        if (stateBarCount(s) > 0) {
+            if (stateCanEnter(s, die)) {
+                result.add(new RuleMove(-1, stateEntryPoint(die), false));
+            }
+            return result;
+        }
+
+        for (int from = 0; from < 24; from++) {
+            if (!stateOwns(s, from)) continue;
+            int to = lightTurn ? from + die : from - die;
+            if (stateCanMove(s, from, to, die)) {
+                result.add(new RuleMove(from, to, false));
+            }
+            if (stateCanBearOff(s, from, die)) {
+                result.add(new RuleMove(from, -1, true));
+            }
+        }
+        return result;
+    }
+
+    private boolean hasLegalMove(RuleState s, int dieIndex) {
+        return legalMoves(s, dieIndex).size > 0;
+    }
+
+    private int maxUsableMoves(RuleState s) {
+        int best = 0;
+        boolean found = false;
+
+        for (int d = 0; d < 4; d++) {
+            if (s.used[d]) continue;
+            Array<RuleMove> moves = legalMoves(s, d);
+            for (RuleMove move : moves) {
+                found = true;
+                RuleState next = s.copy();
+                applyRuleMove(next, move);
+                next.used[d] = true;
+                best = Math.max(best, 1 + maxUsableMoves(next));
+            }
+        }
+        return found ? best : 0;
+    }
+
+    private void applyRuleMove(RuleState s, RuleMove move) {
+        if (move.bearOff) {
+            if (lightTurn) {
+                s.points[move.from]--;
+                s.lightOff++;
+            } else {
+                s.points[move.from]++;
+                s.darkOff++;
+            }
+            return;
+        }
+
+        if (move.from == -1) {
+            if (lightTurn) {
+                s.lightBar--;
+                if (s.points[move.to] == -1) {
+                    s.points[move.to] = 0;
+                    s.darkBar++;
+                }
+                s.points[move.to]++;
+            } else {
+                s.darkBar--;
+                if (s.points[move.to] == 1) {
+                    s.points[move.to] = 0;
+                    s.lightBar++;
+                }
+                s.points[move.to]--;
+            }
+            return;
+        }
+
+        if (lightTurn) {
+            if (s.points[move.to] == -1) {
+                s.points[move.to] = 0;
+                s.darkBar++;
+            }
+            s.points[move.from]--;
+            s.points[move.to]++;
+        } else {
+            if (s.points[move.to] == 1) {
+                s.points[move.to] = 0;
+                s.lightBar++;
+            }
+            s.points[move.from]++;
+            s.points[move.to]--;
+        }
     }
 
     private boolean hitDie(int screenX, int screenY) {
