@@ -37,8 +37,10 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private int lightBar, darkBar;
     private int lightOff, darkOff;
     private boolean lightTurn = true;
-    private final int[] dice = {0, 0};
-    private final boolean[] dieUsed = {true, true};
+    private final int[] dice = {0, 0, 0, 0};
+    private final boolean[] dieUsed = {true, true, true, true};
+    private boolean selectedBar;
+    private boolean openingRollPending;
     private boolean diceRolled;
     private int selectedPoint = -1;
 
@@ -138,26 +140,45 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private void resetGameState() {
         for (int i = 0; i < 24; i++) points[i] = 0;
-        points[0] = 2; points[5] = 5; points[7] = 3; points[11] = 5;
-        points[23] = -2; points[18] = -5; points[16] = -3; points[12] = -5;
+
+        // Standard opening position:
+        // Light: 2 on 24, 5 on 13, 3 on 8, 5 on 6 from the opponent's view.
+        // In this board's increasing-point coordinate system that is:
+        // 2 on point 1, 5 on point 6, 3 on point 8, 5 on point 12.
+        // Dark occupies the exact mirror: 2 on 24, 5 on 19, 3 on 17, 5 on 13.
+        points[0] = 2;
+        points[5] = 5;
+        points[7] = 3;
+        points[11] = 5;
+        points[23] = -2;
+        points[18] = -5;
+        points[16] = -3;
+        points[12] = -5;
+
         lightBar = darkBar = lightOff = darkOff = 0;
         lightTurn = true;
-        dice[0] = dice[1] = 0;
-        dieUsed[0] = dieUsed[1] = true;
+        for (int i = 0; i < 4; i++) {
+            dice[i] = 0;
+            dieUsed[i] = true;
+        }
         diceRolled = false;
         selectedPoint = -1;
+        selectedBar = false;
+        openingRollPending = true;
         status = "Roll the dice to start";
         statusTimer = 0f;
     }
 
-    private boolean allDiceUsed() { return dieUsed[0] && dieUsed[1]; }
+    private boolean allDiceUsed() {
+        return dieUsed[0] && dieUsed[1] && dieUsed[2] && dieUsed[3];
+    }
+
+    private int barCount() {
+        return lightTurn ? lightBar : darkBar;
+    }
 
     private boolean owns(int point) {
         return point >= 0 && point < 24 && (lightTurn ? points[point] > 0 : points[point] < 0);
-    }
-
-    private int moveDistance(int from, int to) {
-        return lightTurn ? to - from : from - to;
     }
 
     private boolean openPoint(int to) {
@@ -165,21 +186,95 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         return lightTurn ? points[to] >= -1 : points[to] <= 1;
     }
 
+    private int entryPoint(int die) {
+        return lightTurn ? 24 - die : die - 1;
+    }
+
+    private boolean canEnterWithDie(int die) {
+        int to = entryPoint(die);
+        return die >= 1 && die <= 6 && openPoint(to);
+    }
+
+    private boolean allCheckersHome() {
+        if (lightBar > 0 || darkBar > 0) return false;
+        if (lightTurn) {
+            for (int p = 0; p < 18; p++) if (points[p] > 0) return false;
+        } else {
+            for (int p = 6; p < 24; p++) if (points[p] < 0) return false;
+        }
+        return true;
+    }
+
+    private boolean canBearOffWithDie(int from, int die) {
+        if (!owns(from) || !allCheckersHome()) return false;
+        if (lightTurn) {
+            int distance = 24 - from;
+            if (die == distance) return true;
+            if (die < distance) return false;
+            for (int p = from + 1; p < 24; p++) if (points[p] > 0) return false;
+            return true;
+        } else {
+            int distance = from + 1;
+            if (die == distance) return true;
+            if (die < distance) return false;
+            for (int p = from - 1; p >= 0; p--) if (points[p] < 0) return false;
+            return true;
+        }
+    }
+
+    private int moveDistance(int from, int to) {
+        return lightTurn ? to - from : from - to;
+    }
+
     private boolean canMoveWithDie(int from, int to, int die) {
-        return owns(from) && openPoint(to) && moveDistance(from, to) == die;
+        if (!owns(from) || !openPoint(to) || moveDistance(from, to) != die) return false;
+        return !canBearOffWithDie(from, die) || to >= 0 && to < 24;
     }
 
     private boolean canUseDie(int from, int die) {
+        if (barCount() > 0) return false;
         int to = lightTurn ? from + die : from - die;
-        return canMoveWithDie(from, to, die);
+        return canMoveWithDie(from, to, die) || canBearOffWithDie(from, die);
+    }
+
+    private boolean hasAnyMoveForDie(int die) {
+        if (die < 1 || die > 6) return false;
+        if (barCount() > 0) return canEnterWithDie(die);
+        for (int p = 0; p < 24; p++) {
+            if (owns(p) && canUseDie(p, die)) return true;
+        }
+        return false;
     }
 
     private boolean hasAnyMove() {
-        for (int p = 0; p < 24; p++) {
-            if (!owns(p)) continue;
-            for (int d = 0; d < 2; d++) {
-                if (!dieUsed[d] && canUseDie(p, dice[d])) return true;
+        for (int d = 0; d < 4; d++) {
+            if (!dieUsed[d] && hasAnyMoveForDie(dice[d])) return true;
+        }
+        return false;
+    }
+
+    private boolean dieAllowedByTurn(int dieIndex) {
+        if (dieIndex < 0 || dieIndex >= 4 || dieUsed[dieIndex]) return false;
+        int available = 0;
+        int larger = -1;
+        for (int d = 0; d < 4; d++) {
+            if (dieUsed[d]) continue;
+            if (hasAnyMoveForDie(dice[d])) {
+                available++;
+                larger = Math.max(larger, dice[d]);
             }
+        }
+        // If only one distinct move remains possible, the rules require the
+        // larger die when both dice were rolled but only one can be played.
+        return available <= 1 || dice[dieIndex] == larger || hasAlternativeMove(dieIndex);
+    }
+
+    private boolean hasAlternativeMove(int chosenDieIndex) {
+        int chosen = dice[chosenDieIndex];
+        for (int d = 0; d < 4; d++) {
+            if (d == chosenDieIndex || dieUsed[d]) continue;
+            if (dice[d] == chosen && dieUsed[d]) continue;
+            if (hasAnyMoveForDie(dice[d])) return true;
         }
         return false;
     }
@@ -208,11 +303,25 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             statusTimer = 1.1f;
             return;
         }
+
         dice[0] = MathUtils.random(1, 6);
         dice[1] = MathUtils.random(1, 6);
+
+        // Opening roll: the higher die determines who starts, and both
+        // numbers are used immediately. Ties are rolled again.
+        if (openingRollPending) {
+            while (dice[1] == dice[0]) dice[1] = MathUtils.random(1, 6);
+            lightTurn = dice[0] > dice[1];
+            openingRollPending = false;
+        }
+
+        dice[2] = dice[0] == dice[1] ? dice[0] : 0;
+        dice[3] = dice[0] == dice[1] ? dice[0] : 0;
+        for (int i = 0; i < 4; i++) dieUsed[i] = (i >= 2 && dice[i] == 0);
+        dieUsed[0] = dieUsed[1] = false;
+
         rollingFaceA = MathUtils.random(1, 6);
         rollingFaceB = MathUtils.random(1, 6);
-        dieUsed[0] = dieUsed[1] = false;
         diceRolled = true;
         diceRollElapsed = 0f;
         lastDiceLiftA = 0f;
@@ -330,7 +439,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (allDiceUsed() || !hasAnyMove()) {
             lightTurn = !lightTurn;
             diceRolled = false;
-            dieUsed[0] = dieUsed[1] = true;
+            for (int i = 0; i < 4; i++) dieUsed[i] = true;
+            selectedBar = false;
             status = lightTurn ? "Light's turn — roll" : "Dark's turn — roll";
         } else {
             status = lightTurn ? "Light: choose your next move" : "Dark: choose your next move";
@@ -340,49 +450,146 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private void selectPoint(int point) {
         if (!diceRolled || allDiceUsed()) return;
+        if (barCount() > 0) {
+            selectedBar = true;
+            selectedPoint = -1;
+            status = "Enter your checker from the bar";
+            statusTimer = 0.9f;
+            rebuildMoveMarkers();
+            return;
+        }
         if (!owns(point)) {
             status = "Select your checker";
             statusTimer = 0.9f;
             return;
         }
         boolean movable = false;
-        for (int d = 0; d < 2; d++) if (!dieUsed[d] && canUseDie(point, dice[d])) movable = true;
+        for (int d = 0; d < 4; d++) {
+            if (!dieUsed[d] && dieAllowedByTurn(d) && canUseDie(point, dice[d])) movable = true;
+        }
         if (!movable) {
             status = "No legal move for this checker";
             statusTimer = 0.9f;
             return;
         }
         selectedPoint = selectedPoint == point ? -1 : point;
+        selectedBar = false;
         rebuildMoveMarkers();
     }
 
     private void rebuildMoveMarkers() {
         clearMoveMarkers();
+        if (!diceRolled || allDiceUsed()) return;
+
+        if (selectedBar) {
+            for (int d = 0; d < 4; d++) {
+                if (dieUsed[d] || !dieAllowedByTurn(d) || !canEnterWithDie(dice[d])) continue;
+                int to = entryPoint(dice[d]);
+                int col = to < 12 ? to : 23 - to;
+                float z = to < 12 ? -2.82f : 2.82f;
+                moveMarkers.add(new ModelInstance(accentModel, XS[col], 0.43f, z));
+            }
+            return;
+        }
+
         if (selectedPoint < 0) return;
-        for (int d = 0; d < 2; d++) {
-            if (dieUsed[d]) continue;
+        for (int d = 0; d < 4; d++) {
+            if (dieUsed[d] || !dieAllowedByTurn(d)) continue;
             int to = lightTurn ? selectedPoint + dice[d] : selectedPoint - dice[d];
             if (canMoveWithDie(selectedPoint, to, dice[d])) {
                 int col = to < 12 ? to : 23 - to;
                 float z = to < 12 ? -2.82f : 2.82f;
-                ModelInstance marker = new ModelInstance(accentModel, XS[col], 0.68f, z);
-                moveMarkers.add(marker);
+                moveMarkers.add(new ModelInstance(accentModel, XS[col], 0.43f, z));
             }
         }
     }
 
     private void clearMoveMarkers() { moveMarkers.clear(); }
 
+    private void tryBarMove(int destination) {
+        if (barCount() <= 0 || moveAnimating || diceRollTime > 0f) return;
+        int dieIndex = -1;
+        for (int d = 0; d < 4; d++) {
+            if (!dieUsed[d] && dieAllowedByTurn(d)
+                    && entryPoint(dice[d]) == destination
+                    && canEnterWithDie(dice[d])) {
+                dieIndex = d;
+                break;
+            }
+        }
+        if (dieIndex < 0) {
+            status = "That entry is blocked";
+            statusTimer = 0.9f;
+            return;
+        }
+
+        if (lightTurn) lightBar--; else darkBar--;
+        if (lightTurn && points[destination] == -1) { points[destination] = 0; darkBar++; }
+        if (!lightTurn && points[destination] == 1) { points[destination] = 0; lightBar++; }
+        points[destination] += lightTurn ? 1 : -1;
+        dieUsed[dieIndex] = true;
+        selectedBar = false;
+        selectedPoint = -1;
+        clearMoveMarkers();
+        rebuildGameObjects();
+        status = "Checker entered";
+        statusTimer = 0.7f;
+        if (allDiceUsed() || !hasAnyMove()) finishMoveState();
+    }
+
+    private void tryBearOff() {
+        if (selectedPoint < 0 || !allCheckersHome()) return;
+        int from = selectedPoint;
+        int dieIndex = -1;
+        for (int d = 0; d < 4; d++) {
+            if (!dieUsed[d] && dieAllowedByTurn(d) && canBearOffWithDie(from, dice[d])) {
+                dieIndex = d;
+                break;
+            }
+        }
+        if (dieIndex < 0) {
+            status = "That checker cannot bear off with this roll";
+            statusTimer = 0.9f;
+            return;
+        }
+
+        points[from] -= lightTurn ? 1 : -1;
+        if (lightTurn) lightOff++; else darkOff++;
+        dieUsed[dieIndex] = true;
+        selectedPoint = -1;
+        selectedBar = false;
+        clearMoveMarkers();
+        rebuildGameObjects();
+
+        if (lightOff >= 15 || darkOff >= 15) {
+            status = lightOff >= 15 ? "LIGHT WINS" : "DARK WINS";
+            statusTimer = 999f;
+            diceRolled = false;
+            for (int i = 0; i < 4; i++) dieUsed[i] = true;
+            return;
+        }
+        if (allDiceUsed() || !hasAnyMove()) finishMoveState();
+    }
+
     private void tryMove(int destination) {
         if (moveAnimating || diceRollTime > 0f) return;
+
+        if (selectedBar) {
+            tryBarMove(destination);
+            return;
+        }
+
         if (selectedPoint < 0) {
             selectPoint(destination);
             return;
         }
 
+        if (destination < 0 || destination >= 24) return;
+
         int dieIndex = -1;
-        for (int d = 0; d < 2; d++) {
-            if (!dieUsed[d] && canMoveWithDie(selectedPoint, destination, dice[d])) {
+        for (int d = 0; d < 4; d++) {
+            if (!dieUsed[d] && dieAllowedByTurn(d)
+                    && canMoveWithDie(selectedPoint, destination, dice[d])) {
                 dieIndex = d;
                 break;
             }
@@ -407,6 +614,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         points[destination] += sign;
         dieUsed[dieIndex] = true;
         selectedPoint = -1;
+        selectedBar = false;
         clearMoveMarkers();
 
         status = "Moving...";
@@ -430,11 +638,27 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private void pickBoard(int screenX, int screenY) {
         if (moveAnimating) return;
         Ray ray = camera.getPickRay(screenX, screenY);
-        Plane plane = new Plane(Vector3.Y, 0.55f);
-        if (Intersector.intersectRayPlane(ray, plane, tmp)) {
-            int point = nearestPoint(tmp.x, tmp.z);
-            if (point >= 0) tryMove(point);
+        Plane plane = new Plane(Vector3.Y, 0.24f);
+        if (!Intersector.intersectRayPlane(ray, plane, tmp)) return;
+
+        if (Math.abs(tmp.x) < 1.05f && Math.abs(tmp.z) < 1.35f) {
+            if (barCount() > 0) {
+                selectedBar = true;
+                selectedPoint = -1;
+                status = "Choose an entry point";
+                statusTimer = 0.9f;
+                rebuildMoveMarkers();
+            }
+            return;
         }
+
+        if (tmp.x > 6.15f && selectedPoint >= 0) {
+            tryBearOff();
+            return;
+        }
+
+        int point = nearestPoint(tmp.x, tmp.z);
+        if (point >= 0) tryMove(point);
     }
 
     private float smoothNoise(float x, float y) {
