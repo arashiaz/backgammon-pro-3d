@@ -112,7 +112,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 0.10f, 0.075f, 0.045f, 0.05f, -0.35f, -0.94f));
 
         woodGrainTexture = new Texture(
-                Gdx.files.internal("textures/walnut_veneer_diff_2k.jpg"), true);
+                Gdx.files.internal("textures/board_wood_texture.jpg"), true);
         woodGrainTexture.setFilter(
                 Texture.TextureFilter.MipMapLinearLinear,
                 Texture.TextureFilter.Linear);
