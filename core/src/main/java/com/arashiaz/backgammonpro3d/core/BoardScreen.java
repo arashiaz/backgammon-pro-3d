@@ -236,8 +236,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // only after the final face is settled, so they never float while the
         // cube spins. The final face is rebuilt atomically when the animation ends.
         if (diceRollTime <= 0f) {
-            if (dice[0] > 0) addTopPips(-0.48f, 1.498f, 0f, dice[0]);
-            if (dice[1] > 0) addTopPips( 0.48f, 1.498f, 0f, dice[1]);
+            if (dice[0] > 0) addTopPips(-0.48f, 1.504f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 0.48f, 1.504f, 0f, dice[1]);
         }
     }
 
@@ -764,11 +764,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         diceModel = createBeveledDieModel(diceTexture, attrs);
         dieDotModel = mb.createCylinder(
-                0.064f, 0.020f, 0.064f, 32,
+                0.071f, 0.012f, 0.071f, 32,
                 new Material(
-                        ColorAttribute.createDiffuse(0.055f, 0.045f, 0.035f, 1f),
-                        ColorAttribute.createSpecular(0.08f, 0.07f, 0.055f, 1f),
-                        FloatAttribute.createShininess(12f)),
+                        ColorAttribute.createDiffuse(0.028f, 0.020f, 0.015f, 1f),
+                        ColorAttribute.createSpecular(0.10f, 0.075f, 0.050f, 1f),
+                        FloatAttribute.createShininess(18f)),
                 attrs);
 
         // Soft contact shadow under every checker. It is intentionally subtle:
@@ -862,14 +862,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Low-cost premium die: an octagonal rounded-rectangle profile with
         // real bevel bands on every edge. This reads much closer to molded
         // ivory/resin than a sharp LibGDX box while remaining mobile-friendly.
-        Material m = new Material(
-                TextureAttribute.createDiffuse(texture),
-                ColorAttribute.createSpecular(0.78f, 0.70f, 0.56f, 1f),
-                FloatAttribute.createShininess(92f));
+        Material m = boneDiceMaterial();
 
         final float half = 0.38f;
-        final float inset = 0.055f;
-        final float bevelY = 0.065f;
+        final float inset = 0.070f;
+        final float bevelY = 0.078f;
 
         // Eight perimeter points: chamfered corners prevent razor-sharp cube
         // corners without the vertex cost of a full rounded-cube subdivision.
