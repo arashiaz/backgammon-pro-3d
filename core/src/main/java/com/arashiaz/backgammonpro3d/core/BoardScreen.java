@@ -388,6 +388,35 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             ModelInstance piece = new ModelInstance(darkChecker, 0.95f, 0.52f + i * 0.27f, 0f);
             gameObjects.add(piece); models.add(piece);
         }
+
+        addBorneOffCheckers(lightChecker, lightOff, true);
+        addBorneOffCheckers(darkChecker, darkOff, false);
+    }
+
+    private void addBorneOffCheckers(Model model, int count, boolean light) {
+        // Keep borne-off pieces physically outside the playing surface and laid
+        // flat in the single right-side storage tray. Three columns x five rows
+        // avoids the unstable tall stacks discouraged by tournament guidance.
+        int capped = Math.min(15, Math.max(0, count));
+        for (int i = 0; i < capped; i++) {
+            int column = i % 3;
+            int row = i / 3;
+            float x = 7.02f + (column - 1) * 0.16f;
+            float z = light
+                    ? -2.95f + row * 0.72f
+                    :  2.95f - row * 0.72f;
+
+            ModelInstance shadow = new ModelInstance(
+                    checkerShadowModel, x, 0.245f, z);
+            shadow.transform.scl(0.72f, 1f, 0.72f);
+            gameObjects.add(shadow);
+            models.add(shadow);
+
+            ModelInstance piece = new ModelInstance(model, x, 0.34f, z);
+            piece.transform.scl(0.62f, 0.72f, 0.62f);
+            gameObjects.add(piece);
+            models.add(piece);
+        }
     }
 
     private ModelInstance findTopChecker(int point) {
