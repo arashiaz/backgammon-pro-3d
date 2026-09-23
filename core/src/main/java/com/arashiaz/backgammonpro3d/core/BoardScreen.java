@@ -642,6 +642,29 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // No overlay rail over the playfield. Keeping the playing surface as
         // one visible mesh prevents the repeated-line artifact seen on mobile.
 
+        // Hand-finished perimeter rails: a raised inner lip plus a darker
+        // shadow seam makes the playfield read as a routed wooden case rather
+        // than a stack of flat boxes.
+        Material frameRail = woodTextured(0.52f, 0.30f, 0.18f, 52f);
+        Material frameLip = mahoganyMaterial(0.30f, 0.115f, 0.040f);
+        Model railLong = mb.createBox(
+                13.30f, 0.16f, 0.34f, frameRail, attrs);
+        Model railShort = mb.createBox(
+                0.34f, 0.16f, 7.30f, frameRail, attrs);
+        models.add(new ModelInstance(railLong, 0f, 0.53f, -4.02f));
+        models.add(new ModelInstance(railLong, 0f, 0.53f,  4.02f));
+        models.add(new ModelInstance(railShort, -6.48f, 0.53f, 0f));
+        models.add(new ModelInstance(railShort,  6.48f, 0.53f, 0f));
+
+        Model lipLong = mb.createBox(
+                12.92f, 0.045f, 0.055f, frameLip, attrs);
+        Model lipShort = mb.createBox(
+                0.055f, 0.045f, 7.18f, frameLip, attrs);
+        models.add(new ModelInstance(lipLong, 0f, 0.635f, -3.82f));
+        models.add(new ModelInstance(lipLong, 0f, 0.635f,  3.82f));
+        models.add(new ModelInstance(lipShort, -6.30f, 0.635f, 0f));
+        models.add(new ModelInstance(lipShort,  6.30f, 0.635f, 0f));
+
         // Subtle central divider shoulders, keeping the bar visually integrated.
         Model barShoulder = mb.createBox(
                 0.86f, 0.07f, 7.48f,
