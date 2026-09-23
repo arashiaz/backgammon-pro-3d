@@ -235,8 +235,8 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // only after the final face is settled, so they never float while the
         // cube spins. The final face is rebuilt atomically when the animation ends.
         if (diceRollTime <= 0f) {
-            if (dice[0] > 0) addTopPips(-0.48f, 1.232f, 0f, dice[0]);
-            if (dice[1] > 0) addTopPips( 0.48f, 1.232f, 0f, dice[1]);
+            if (dice[0] > 0) addTopPips(-0.48f, 1.498f, 0f, dice[0]);
+            if (dice[1] > 0) addTopPips( 0.48f, 1.498f, 0f, dice[1]);
         }
     }
 
@@ -730,7 +730,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         diceModel = createBeveledDieModel(diceTexture, attrs);
         dieDotModel = mb.createCylinder(
-                0.072f, 0.012f, 0.072f, 32,
+                0.064f, 0.020f, 0.064f, 32,
                 new Material(
                         ColorAttribute.createDiffuse(0.055f, 0.045f, 0.035f, 1f),
                         ColorAttribute.createSpecular(0.08f, 0.07f, 0.055f, 1f),
@@ -1060,11 +1060,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private Model createPointModel(Material material, Material detailMaterial, long attrs) {
         mb.begin();
-        MeshPartBuilder p = mb.part("point", GL20.GL_TRIANGLES, attrs, material);
+        MeshPartBuilder p = mb.part("point_body", GL20.GL_TRIANGLES, attrs, material);
 
         final float w = 0.40f;
         final float y0 = 0f;
-        final float y1 = 0.095f;
+        final float y1 = 0.082f;
         final float zBase = 1.55f;
         final float zTip = -1.55f;
 
@@ -1075,17 +1075,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         Vector3 b1 = new Vector3( w, y1, zBase);
         Vector3 c1 = new Vector3(0f, y1, zTip);
 
-        // Explicit UVs on the visible face. V runs from the wide wooden
-        // base to the point, so the grain follows the long axis naturally.
-        VertexInfo va = new VertexInfo().set(
-                a1, Vector3.Y, null, new Vector2(0.0f, 0.0f));
-        VertexInfo vb = new VertexInfo().set(
-                b1, Vector3.Y, null, new Vector2(1.0f, 0.0f));
-        VertexInfo vc = new VertexInfo().set(
-                c1, Vector3.Y, null, new Vector2(0.5f, 1.0f));
-        p.triangle(va, vb, vc);
-
-        // Keep the side walls closed; they do not need visible grain mapping.
+        // Solid raised inlay body.
         p.triangle(c0, b0, a0);
         p.triangle(a0, b0, b1);
         p.triangle(a0, b1, a1);
@@ -1094,13 +1084,28 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         p.triangle(c0, a0, a1);
         p.triangle(c0, a1, c1);
 
-        // Keep the playing points as one clean, solid surface.
-        // The previous raised inset created distracting banding/moire at
-        // mobile resolutions and made the points look striped instead of
-        // like the clean wood/felt in a premium physical board.
+        // A smaller inset cap leaves a narrow polished border around the
+        // point. This gives the triangular inlay a routed, crafted edge
+        // instead of a single flat polygon.
+        final float insetW = 0.345f;
+        final float insetBase = 1.43f;
+        final float insetTip = -1.40f;
+        final float insetY = y1 + 0.006f;
+
+        VertexInfo ia = new VertexInfo().set(
+                new Vector3(-insetW, insetY, insetBase), Vector3.Y, null,
+                new Vector2(0.0f, 0.0f));
+        VertexInfo ib = new VertexInfo().set(
+                new Vector3( insetW, insetY, insetBase), Vector3.Y, null,
+                new Vector2(1.0f, 0.0f));
+        VertexInfo ic = new VertexInfo().set(
+                new Vector3(0f, insetY, insetTip), Vector3.Y, null,
+                new Vector2(0.5f, 1.0f));
+        MeshPartBuilder inset = mb.part("point_inlay", GL20.GL_TRIANGLES, attrs, detailMaterial);
+        inset.triangle(ia, ib, ic);
+
         return mb.end();
     }
-
     private void addStack(Model model, float x, float z, int count) {
         for (int i = 0; i < count; i++) {
             float offset = i * 0.43f;
