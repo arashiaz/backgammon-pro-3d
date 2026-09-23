@@ -57,7 +57,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     private Model floorModel, baseModel, playingSurfaceModel, railModel, barModel;
     private Model sideTrayModel, sideTrayInsetModel, hingePlateModel, medallionModel, medallionRingModel;
-    private Model darkPointModel, lightPointModel;
+    private Model darkPointModel, lightPointModel, pointShadowModel;
     private Model darkChecker, lightChecker;
     private Model diceModel, dieDotModel, checkerShadowModel;
     private Model accentModel;
@@ -721,7 +721,31 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                         ColorAttribute.createSpecular(0.70f, 0.52f, 0.30f, 1f),
                         FloatAttribute.createShininess(82f)), attrs);
 
+        // Thin dark routed bed beneath every point. It is deliberately larger than
+        // the inlay and only a fraction of the height, creating a natural
+        // recessed/AO edge instead of a flat painted triangle.
+        pointShadowModel = createPointModel(
+                new Material(
+                        ColorAttribute.createDiffuse(0.055f, 0.018f, 0.010f, 1f),
+                        ColorAttribute.createSpecular(0.12f, 0.055f, 0.025f, 1f),
+                        FloatAttribute.createShininess(24f)),
+                new Material(
+                        ColorAttribute.createDiffuse(0.030f, 0.010f, 0.006f, 1f),
+                        ColorAttribute.createSpecular(0.08f, 0.035f, 0.018f, 1f),
+                        FloatAttribute.createShininess(18f)), attrs);
+
         for (int i = 0; i < 12; i++) {
+            ModelInstance bottomShadow = new ModelInstance(
+                    pointShadowModel, XS[i], 0.465f, -2.18f);
+            bottomShadow.transform.rotate(Vector3.Y, 180f);
+            bottomShadow.transform.scale(1.06f, 0.34f, 1.06f);
+            models.add(bottomShadow);
+
+            ModelInstance topShadow = new ModelInstance(
+                    pointShadowModel, XS[i], 0.465f, 2.18f);
+            topShadow.transform.scale(1.06f, 0.34f, 1.06f);
+            models.add(topShadow);
+
             ModelInstance bottomPoint = new ModelInstance(
                     (i % 2 == 0) ? darkPointModel : lightPointModel,
                     XS[i], 0.50f, -2.18f);
@@ -1447,5 +1471,6 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (hingePlateModel != null) hingePlateModel.dispose();
         if (medallionModel != null) medallionModel.dispose();
         if (medallionRingModel != null) medallionRingModel.dispose();
+        if (pointShadowModel != null) pointShadowModel.dispose();
     }
 }
