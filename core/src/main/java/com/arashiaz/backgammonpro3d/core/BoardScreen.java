@@ -1938,7 +1938,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     @Override
-    public boolean touchDragged(int x, int y, int pointer, int button) {
+    public boolean touchDragged(int x, int y, int pointer) {
         if (diceTouch) {
             if (!diceRolled) {
                 float dx=x-downX, dy=y-downY;
