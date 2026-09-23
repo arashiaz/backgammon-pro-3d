@@ -43,6 +43,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private boolean openingRollPending;
     private boolean diceRolled;
     private int selectedPoint = -1;
+    private int selectedDie = -1;
 
     private final ShapeRenderer uiShape = new ShapeRenderer();
     private final SpriteBatch uiBatch = new SpriteBatch();
@@ -487,18 +488,19 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
     }
 
-    private boolean hitDie(int screenX, int screenY) {
+    private int hitDie(int screenX, int screenY) {
         Ray ray = camera.getPickRay(screenX, screenY);
         // Intersect at the top of the dice/tray region. Using the actual
         // projected die centers avoids the old board-scale mismatch that made
         // only a small corner respond to touch.
         Plane plane = new Plane(Vector3.Y, 0.70f);
-        if (!Intersector.intersectRayPlane(ray, plane, tmp)) return false;
+        if (!Intersector.intersectRayPlane(ray, plane, tmp)) return -1;
         final float r2 = 0.72f * 0.72f;
         float dxA = tmp.x + 0.48f;
         float dxB = tmp.x - 0.48f;
-        return dxA * dxA + tmp.z * tmp.z <= r2
-                || dxB * dxB + tmp.z * tmp.z <= r2;
+        if (dxA * dxA + tmp.z * tmp.z <= r2) return 0;
+        if (dxB * dxB + tmp.z * tmp.z <= r2) return 1;
+        return -1;
     }
 
     private void rollDice() {
@@ -539,6 +541,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         diceSpinB = MathUtils.random(0f, 360f);
         diceRollTime = 0.95f;
         selectedPoint = -1;
+        selectedDie = -1;
         clearMoveMarkers();
         status = lightTurn ? "Light: choose a checker" : "Dark: choose a checker";
         statusTimer = 1.5f;
@@ -708,6 +711,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         }
         boolean movable = false;
         for (int d = 0; d < 4; d++) {
+            if (selectedDie >= 0 && d != selectedDie) continue;
             if (!dieUsed[d] && dieAllowedByTurn(d) && canUseDie(point, dice[d])) movable = true;
         }
         if (!movable) {
@@ -726,6 +730,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         if (selectedBar) {
             for (int d = 0; d < 4; d++) {
+                if (selectedDie >= 0 && d != selectedDie) continue;
                 if (dieUsed[d] || !dieAllowedByTurn(d) || !canEnterWithDie(dice[d])) continue;
                 int to = entryPoint(dice[d]);
                 int col = to < 12 ? to : 23 - to;
@@ -737,6 +742,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         if (selectedPoint < 0) return;
         for (int d = 0; d < 4; d++) {
+            if (selectedDie >= 0 && d != selectedDie) continue;
             if (dieUsed[d] || !dieAllowedByTurn(d)) continue;
             int to = lightTurn ? selectedPoint + dice[d] : selectedPoint - dice[d];
             if (canMoveWithDie(selectedPoint, to, dice[d])) {
@@ -753,6 +759,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (barCount() <= 0 || moveAnimating || diceRollTime > 0f) return;
         int dieIndex = -1;
         for (int d = 0; d < 4; d++) {
+            if (selectedDie >= 0 && d != selectedDie) continue;
             if (!dieUsed[d] && dieAllowedByTurn(d)
                     && entryPoint(dice[d]) == destination
                     && canEnterWithDie(dice[d])) {
@@ -785,6 +792,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         int from = selectedPoint;
         int dieIndex = -1;
         for (int d = 0; d < 4; d++) {
+            if (selectedDie >= 0 && d != selectedDie) continue;
             if (!dieUsed[d] && dieAllowedByTurn(d) && canBearOffWithDie(from, dice[d])) {
                 dieIndex = d;
                 break;
@@ -799,6 +807,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         points[from] -= lightTurn ? 1 : -1;
         if (lightTurn) lightOff++; else darkOff++;
         dieUsed[dieIndex] = true;
+        selectedDie = -1;
         selectedPoint = -1;
         selectedBar = false;
         clearMoveMarkers();
@@ -831,6 +840,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         int dieIndex = -1;
         for (int d = 0; d < 4; d++) {
+            if (selectedDie >= 0 && d != selectedDie) continue;
             if (!dieUsed[d] && dieAllowedByTurn(d)
                     && canMoveWithDie(selectedPoint, destination, dice[d])) {
                 dieIndex = d;
@@ -1912,59 +1922,47 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
     @Override
     public boolean touchDown(int x, int y, int pointer, int button) {
-        downX = lastX = x;
-        downY = lastY = y;
-        dragged = false;
-        diceTouch = !moveAnimating && diceRollTime <= 0f && hitDie(x, y);
-        diceSwipeDistance = 0f;
-        uiTouch = false;
-        return true;
+        downX = lastX = x; downY = lastY = y; dragged = false;
+        int dieHit = !moveAnimating && diceRollTime <= 0f ? hitDie(x, y) : -1;
+        diceTouch = dieHit >= 0;
+        if (diceTouch) {
+            selectedDie = dieHit;
+            diceSwipeDistance = 0f;
+            if (diceRolled && !allDiceUsed()) {
+                if (dieUsed[dieHit]) { status = "That die is already used"; statusTimer = 0.8f; selectedDie = -1; }
+                else if (dieAllowedByTurn(dieHit)) { status = "Die " + dice[dieHit] + " selected"; statusTimer = 0.8f; rebuildMoveMarkers(); }
+                else { status = "That die cannot be used now"; statusTimer = 0.9f; selectedDie = -1; }
+            }
+        }
+        uiTouch = false; return true;
     }
 
     @Override
-    public boolean touchDragged(int x, int y, int pointer) {
+    public boolean touchDragged(int x, int y, int pointer, int button) {
         if (diceTouch) {
-            float dx = x - downX;
-            float dy = y - downY;
-            diceSwipeDistance = MathUtils.clamp((float)Math.sqrt(dx * dx + dy * dy), 0f, 300f);
-            if (diceSwipeDistance > 12f) dragged = true;
-            lastX = x;
-            lastY = y;
-            return true;
+            if (!diceRolled) {
+                float dx=x-downX, dy=y-downY;
+                diceSwipeDistance=MathUtils.clamp((float)Math.sqrt(dx*dx+dy*dy),0f,300f);
+                if (diceSwipeDistance>12f) dragged=true;
+            }
+            lastX=x; lastY=y; return true;
         }
-        if (Math.abs(x - downX) + Math.abs(y - downY) > 12f) dragged = true;
+        if (Math.abs(x-downX)+Math.abs(y-downY)>12f) dragged=true;
         if (!dragged) return true;
-
-        float dx = x - lastX;
-        float dy = y - lastY;
-        cameraAzimuth = MathUtils.clamp(cameraAzimuth - dx * 0.13f, -22f, 22f);
-        cameraElevation = MathUtils.clamp(cameraElevation - dy * 0.09f, 48f, 68f);
-        updateCamera();
-        lastX = x;
-        lastY = y;
-        return true;
+        float dx=x-lastX, dy=y-lastY;
+        cameraAzimuth=MathUtils.clamp(cameraAzimuth-dx*0.13f,-22f,22f);
+        cameraElevation=MathUtils.clamp(cameraElevation-dy*0.09f,48f,68f);
+        updateCamera(); lastX=x; lastY=y; return true;
     }
 
     @Override
     public boolean touchUp(int x, int y, int pointer, int button) {
         if (diceTouch) {
-            if (!moveAnimating && diceRollTime <= 0f) {
-                if (diceRolled && !allDiceUsed()) {
-                    status = "Use the current dice first";
-                    statusTimer = 1.0f;
-                } else {
-                    rollDice(diceSwipeDistance * 2.2f);
-                }
-            }
-            diceTouch = false;
-            dragged = false;
-            return true;
+            if (!moveAnimating && diceRollTime<=0f && !diceRolled) rollDice(diceSwipeDistance*2.2f);
+            diceTouch=false; dragged=false; return true;
         }
-        if (!dragged) pickBoard(x, y);
-        dragged = false;
-        return true;
+        if (!dragged) pickBoard(x,y); dragged=false; return true;
     }
-
     @Override
     public boolean touchCancelled(int x, int y, int pointer, int button) {
         dragged = false;
