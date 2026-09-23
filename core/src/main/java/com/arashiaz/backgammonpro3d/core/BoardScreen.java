@@ -1003,6 +1003,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Model createBeveledCheckerModel(Texture topTexture, Material material, Material detailMaterial, Material rimMaterial, long attrs) {
+        // Controlled studio reflection on the curved bands creates a Fresnel-like
+        // edge response without requiring a custom shader on mobile.
+        applyStudioReflection(material, 0.18f, 0.07f, 0.055f);
+        applyStudioReflection(detailMaterial, 0.22f, 0.09f, 0.07f);
+        applyStudioReflection(rimMaterial, 0.30f, 0.13f, 0.10f);
+
         mb.begin();
         MeshPartBuilder p = mb.part("checker", GL20.GL_TRIANGLES, attrs, material);
 
@@ -1045,14 +1051,15 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
             p.triangle(top0, bot1, bot0);
         }
 
-        MeshPartBuilder top = mb.part("checker_top", GL20.GL_TRIANGLES, attrs,
-                new Material(
-                        TextureAttribute.createDiffuse(topTexture),
-                        TextureAttribute.createNormal(
-                                topTexture == lightCheckerTexture
-                                        ? lightCheckerNormalTexture : darkCheckerNormalTexture),
-                        ColorAttribute.createSpecular(0.68f, 0.60f, 0.48f, 1f),
-                        FloatAttribute.createShininess(92f)));
+        Material topMaterial = new Material(
+                TextureAttribute.createDiffuse(topTexture),
+                TextureAttribute.createNormal(
+                        topTexture == lightCheckerTexture
+                                ? lightCheckerNormalTexture : darkCheckerNormalTexture),
+                ColorAttribute.createSpecular(0.68f, 0.60f, 0.48f, 1f),
+                FloatAttribute.createShininess(92f));
+        applyStudioReflection(topMaterial, 0.14f, 0.10f, 0.075f);
+        MeshPartBuilder top = mb.part("checker_top", GL20.GL_TRIANGLES, attrs, topMaterial);
         final float topRadius = radius - bevelRadius;
         final Vector3 topCenter = new Vector3(0f, half + bevelY + 0.001f, 0f);
         for (int i = 0; i < segments; i++) {
@@ -1498,29 +1505,3 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (studioCubemap != null) studioCubemap.dispose();
         batch.dispose();
         uiShape.dispose();
-        uiBatch.dispose();
-        uiFont.dispose();
-        if (floorModel != null) floorModel.dispose();
-        if (baseModel != null) baseModel.dispose();
-        if (playingSurfaceModel != null) playingSurfaceModel.dispose();
-        if (railModel != null) railModel.dispose();
-        if (barModel != null) barModel.dispose();
-        if (darkPointModel != null) darkPointModel.dispose();
-        if (lightPointModel != null) lightPointModel.dispose();
-        if (darkChecker != null) darkChecker.dispose();
-        if (lightChecker != null) lightChecker.dispose();
-        if (diceModel != null) diceModel.dispose();
-        if (dieDotModel != null) dieDotModel.dispose();
-        if (checkerShadowModel != null) checkerShadowModel.dispose();
-        if (accentModel != null) accentModel.dispose();
-        if (diceTrayModel != null) diceTrayModel.dispose();
-        if (diceEdgeModel != null) diceEdgeModel.dispose();
-        if (screwModel != null) screwModel.dispose();
-        if (sideTrayModel != null) sideTrayModel.dispose();
-        if (sideTrayInsetModel != null) sideTrayInsetModel.dispose();
-        if (hingePlateModel != null) hingePlateModel.dispose();
-        if (medallionModel != null) medallionModel.dispose();
-        if (medallionRingModel != null) medallionRingModel.dispose();
-        if (pointShadowModel != null) pointShadowModel.dispose();
-    }
-}
