@@ -189,7 +189,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Intersect at the top of the dice/tray region. Using the actual
         // projected die centers avoids the old board-scale mismatch that made
         // only a small corner respond to touch.
-        Plane plane = new Plane(Vector3.Y, 0.70f)
+        Plane plane = new Plane(Vector3.Y, 0.70f);
         if (!Intersector.intersectRayPlane(ray, plane, tmp)) return false;
         final float r2 = 0.72f * 0.72f;
         float dxA = tmp.x + 0.48f;
