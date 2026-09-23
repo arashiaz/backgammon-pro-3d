@@ -542,7 +542,12 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Material playingWoodMaterial() {
-        return material(woodGrainTexture, woodNormalTexture, 0.64f, 0.43f, 0.27f, 0.30f, 0.20f, 0.14f, 34f);
+        // Finished walnut playfield: restrained warm tint, moderate specular
+        // response and a tighter highlight so the surface reads as varnished
+        // wood instead of a matte brown panel.
+        return material(woodGrainTexture, woodNormalTexture,
+                0.72f, 0.48f, 0.285f,
+                0.52f, 0.34f, 0.22f, 58f);
     }
 
     private Material glossyDarkResinMaterial() {
@@ -629,14 +634,16 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // Layered wooden frame: darker body + inset + thin highlight rail.
         baseModel = mb.createBox(
                 14.8f, 0.64f, 8.6f,
-                woodTextured(0.46f, 0.25f, 0.17f, 34f), attrs);
+                material(woodGrainTexture, woodNormalTexture,
+                        0.50f, 0.275f, 0.17f,
+                        0.46f, 0.29f, 0.18f, 50f), attrs);
         models.add(new ModelInstance(baseModel, 0f, -0.02f, 0f));
 
         // Single clean playfield: one solid top surface avoids layered
         // coplanar/intersecting panels that can create mobile depth artifacts.
         playingSurfaceModel = mb.createBox(
                 12.70f, 0.18f, 7.60f,
-                woodTextured(0.62f, 0.40f, 0.24f, 42f), attrs);
+                playingWoodMaterial(), attrs);
         models.add(new ModelInstance(playingSurfaceModel, 0f, 0.38f, 0f));
 
         // No overlay rail over the playfield. Keeping the playing surface as
