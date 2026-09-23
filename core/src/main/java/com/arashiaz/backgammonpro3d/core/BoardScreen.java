@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.FacedCubemapData;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -67,6 +68,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Texture lightCheckerTexture, lightCheckerNormalTexture;
     private Texture darkCheckerTexture, darkCheckerNormalTexture;
     private Texture diceTexture, diceNormalTexture;
+    private Cubemap studioCubemap;
     
     private float lastX, lastY;
     private boolean dragging;
@@ -127,6 +129,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         lightCheckerNormalTexture = createNormalTexture(256, 5f, 0.34f, 505L);
         darkCheckerNormalTexture = createNormalTexture(256, 5f, 0.34f, 606L);
         diceNormalTexture = createNormalTexture(256, 4f, 0.22f, 707L);
+        studioCubemap = createStudioCubemap();
         buildBoard();
         updateCamera();
     }
@@ -556,15 +559,61 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     }
 
     private Material glossyDarkResinMaterial() {
-        return material(darkCheckerTexture, darkCheckerNormalTexture, 0.42f, 0.075f, 0.070f, 0.92f, 0.48f, 0.40f, 132f);
+        Material m = material(darkCheckerTexture, darkCheckerNormalTexture,
+                0.42f, 0.075f, 0.070f, 0.92f, 0.48f, 0.40f, 132f);
+        applyStudioReflection(m, 0.24f, 0.10f, 0.08f);
+        return m;
     }
 
     private Material glossyIvoryResinMaterial() {
-        return material(lightCheckerTexture, lightCheckerNormalTexture, 0.96f, 0.89f, 0.77f, 0.92f, 0.78f, 0.58f, 118f);
+        Material m = material(lightCheckerTexture, lightCheckerNormalTexture,
+                0.96f, 0.89f, 0.77f, 0.92f, 0.78f, 0.58f, 118f);
+        applyStudioReflection(m, 0.22f, 0.18f, 0.12f);
+        return m;
     }
 
     private Material boneDiceMaterial() {
-        return material(diceTexture, diceNormalTexture, 0.96f, 0.87f, 0.69f, 0.94f, 0.80f, 0.60f, 104f);
+        Material m = material(diceTexture, diceNormalTexture,
+                0.96f, 0.87f, 0.69f, 0.94f, 0.80f, 0.60f, 104f);
+        applyStudioReflection(m, 0.20f, 0.16f, 0.10f);
+        return m;
+    }
+
+    private void applyStudioReflection(Material material, float r, float g, float b) {
+        if (studioCubemap == null) return;
+        material.set(new CubemapAttribute(CubemapAttribute.EnvironmentMap, studioCubemap));
+        material.set(ColorAttribute.createReflection(r, g, b, 1f));
+    }
+
+    /**
+     * Tiny procedural studio environment used only for subtle glossy reflections.
+     * It avoids shipping another texture while giving resin and bone a controlled
+     * softbox highlight instead of a flat directional-light response.
+     */
+    private Cubemap createStudioCubemap() {
+        final int size = 32;
+        Pixmap[] faces = new Pixmap[6];
+        float[] faceBoost = {1.00f, 0.82f, 1.18f, 0.62f, 0.92f, 0.74f};
+        for (int f = 0; f < faces.length; f++) {
+            Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+            float boost = faceBoost[f];
+            for (int y = 0; y < size; y++) {
+                float v = y / (float)(size - 1);
+                float softbox = (float)Math.exp(-Math.pow((v - 0.32f) / 0.18f, 2.0));
+                for (int x = 0; x < size; x++) {
+                    float u = x / (float)(size - 1);
+                    float edge = 1f - Math.abs(u - 0.5f) * 0.34f;
+                    float value = MathUtils.clamp((0.055f + softbox * 0.18f) * boost * edge, 0f, 1f);
+                    pm.setColor(value * 0.98f, value * 0.91f, value * 0.78f, 1f);
+                    pm.drawPixel(x, y);
+                }
+            }
+            faces[f] = pm;
+        }
+        Cubemap cubemap = new Cubemap(new FacedCubemapData(
+                faces[0], faces[1], faces[2], faces[3], faces[4], faces[5], false));
+        for (Pixmap face : faces) face.dispose();
+        return cubemap;
     }
 
     private Material wood(float r, float g, float b, float shine) {
@@ -1446,6 +1495,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (darkCheckerNormalTexture != null) darkCheckerNormalTexture.dispose();
         if (diceTexture != null) diceTexture.dispose();
         if (diceNormalTexture != null) diceNormalTexture.dispose();
+        if (studioCubemap != null) studioCubemap.dispose();
         batch.dispose();
         uiShape.dispose();
         uiBatch.dispose();
