@@ -1505,3 +1505,29 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (studioCubemap != null) studioCubemap.dispose();
         batch.dispose();
         uiShape.dispose();
+        uiBatch.dispose();
+        uiFont.dispose();
+        if (floorModel != null) floorModel.dispose();
+        if (baseModel != null) baseModel.dispose();
+        if (playingSurfaceModel != null) playingSurfaceModel.dispose();
+        if (railModel != null) railModel.dispose();
+        if (barModel != null) barModel.dispose();
+        if (darkPointModel != null) darkPointModel.dispose();
+        if (lightPointModel != null) lightPointModel.dispose();
+        if (pointShadowModel != null) pointShadowModel.dispose();
+        if (darkChecker != null) darkChecker.dispose();
+        if (lightChecker != null) lightChecker.dispose();
+        if (diceModel != null) diceModel.dispose();
+        if (dieDotModel != null) dieDotModel.dispose();
+        if (checkerShadowModel != null) checkerShadowModel.dispose();
+        if (accentModel != null) accentModel.dispose();
+        if (diceTrayModel != null) diceTrayModel.dispose();
+        if (diceEdgeModel != null) diceEdgeModel.dispose();
+        if (screwModel != null) screwModel.dispose();
+        if (sideTrayModel != null) sideTrayModel.dispose();
+        if (sideTrayInsetModel != null) sideTrayInsetModel.dispose();
+        if (hingePlateModel != null) hingePlateModel.dispose();
+        if (medallionModel != null) medallionModel.dispose();
+        if (medallionRingModel != null) medallionRingModel.dispose();
+    }
+}
