@@ -59,7 +59,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
     private Model sideTrayModel, sideTrayInsetModel, hingePlateModel, medallionModel, medallionRingModel;
     private Model darkPointModel, lightPointModel;
     private Model darkChecker, lightChecker;
-    private Model diceModel, dieDotModel;
+    private Model diceModel, dieDotModel, checkerShadowModel;
     private Model accentModel;
     private Model diceTrayModel, screwModel;
     private Model diceEdgeModel;
@@ -249,15 +249,24 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 int col = p < 12 ? p : 23 - p;
                 float x = XS[col];
                 float z = p < 12 ? -2.92f + i * 0.22f : 2.92f - i * 0.22f;
+                ModelInstance shadow = new ModelInstance(checkerShadowModel, x, 0.505f + i * 0.22f, z);
+                shadow.transform.scl(1.08f, 1f, 0.78f);
+                gameObjects.add(shadow); models.add(shadow);
                 ModelInstance piece = new ModelInstance(model, x, 0.58f + i * 0.22f, z);
                 gameObjects.add(piece); models.add(piece);
             }
         }
         for (int i = 0; i < lightBar; i++) {
+            ModelInstance shadow = new ModelInstance(checkerShadowModel, -0.95f, 0.705f + i * 0.43f, 0f);
+            shadow.transform.scl(1.08f, 1f, 0.78f);
+            gameObjects.add(shadow); models.add(shadow);
             ModelInstance piece = new ModelInstance(lightChecker, -0.95f, 0.78f + i * 0.43f, 0f);
             gameObjects.add(piece); models.add(piece);
         }
         for (int i = 0; i < darkBar; i++) {
+            ModelInstance shadow = new ModelInstance(checkerShadowModel, 0.95f, 0.705f + i * 0.43f, 0f);
+            shadow.transform.scl(1.08f, 1f, 0.78f);
+            gameObjects.add(shadow); models.add(shadow);
             ModelInstance piece = new ModelInstance(darkChecker, 0.95f, 0.78f + i * 0.43f, 0f);
             gameObjects.add(piece); models.add(piece);
         }
@@ -402,7 +411,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         for (int p = 0; p < 24; p++) {
             int col = p < 12 ? p : 23 - p;
             float px = XS[col];
-            float pz = p < 12 ? -3.25f : 3.25f;
+            float pz = p < 12 ? -2.82f : 2.82f;
             float distance = Vector2.dst(x, z, px, pz);
             if (distance < bestDistance) { bestDistance = distance; best = p; }
         }
@@ -721,11 +730,20 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         diceModel = createBeveledDieModel(diceTexture, attrs);
         dieDotModel = mb.createCylinder(
-                0.072f, 0.016f, 0.072f, 32,
+                0.072f, 0.012f, 0.072f, 32,
                 new Material(
-                        ColorAttribute.createDiffuse(0.035f, 0.032f, 0.028f, 1f),
-                        ColorAttribute.createSpecular(0.12f, 0.12f, 0.12f, 1f),
-                        FloatAttribute.createShininess(20f)),
+                        ColorAttribute.createDiffuse(0.055f, 0.045f, 0.035f, 1f),
+                        ColorAttribute.createSpecular(0.08f, 0.07f, 0.055f, 1f),
+                        FloatAttribute.createShininess(12f)),
+                attrs);
+
+        // Soft contact shadow under every checker. It is intentionally subtle:
+        // enough to visually seat the pieces on the wood without looking painted on.
+        checkerShadowModel = mb.createCylinder(
+                0.43f, 0.006f, 0.43f, 40,
+                new Material(
+                        ColorAttribute.createDiffuse(0.015f, 0.010f, 0.008f, 0.24f),
+                        new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, 0.24f)),
                 attrs);
 
         // Small gold center emblem/trim.
@@ -922,8 +940,11 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         MeshPartBuilder top = mb.part("checker_top", GL20.GL_TRIANGLES, attrs,
                 new Material(
                         TextureAttribute.createDiffuse(topTexture),
-                        ColorAttribute.createSpecular(0.50f, 0.46f, 0.38f, 1f),
-                        FloatAttribute.createShininess(70f)));
+                        TextureAttribute.createNormal(
+                                topTexture == lightCheckerTexture
+                                        ? lightCheckerNormalTexture : darkCheckerNormalTexture),
+                        ColorAttribute.createSpecular(0.68f, 0.60f, 0.48f, 1f),
+                        FloatAttribute.createShininess(92f)));
         final float topRadius = radius - bevelRadius;
         final Vector3 topCenter = new Vector3(0f, half + bevelY + 0.001f, 0f);
         for (int i = 0; i < segments; i++) {
@@ -1376,6 +1397,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         if (lightChecker != null) lightChecker.dispose();
         if (diceModel != null) diceModel.dispose();
         if (dieDotModel != null) dieDotModel.dispose();
+        if (checkerShadowModel != null) checkerShadowModel.dispose();
         if (accentModel != null) accentModel.dispose();
         if (diceTrayModel != null) diceTrayModel.dispose();
         if (diceEdgeModel != null) diceEdgeModel.dispose();
