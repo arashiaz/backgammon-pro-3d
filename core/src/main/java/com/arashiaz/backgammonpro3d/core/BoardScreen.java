@@ -687,24 +687,27 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         models.add(new ModelInstance(barCap, 0f, 0.725f, 0f));
 
         // Classic flat points: no wood texture is applied to these meshes.
+        // Lacquered resin-style point inlays: a deep burgundy and warm ivory
+        // with controlled specular response so the raised faces catch the light
+        // like finished furniture rather than flat 2D paint.
         darkPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.33f, 0.10f, 0.14f, 1f),
-                        ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
-                        FloatAttribute.createShininess(8f)),
+                        ColorAttribute.createDiffuse(0.27f, 0.055f, 0.075f, 1f),
+                        ColorAttribute.createSpecular(0.48f, 0.25f, 0.22f, 1f),
+                        FloatAttribute.createShininess(58f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.22f, 0.055f, 0.075f, 1f),
-                        ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
-                        FloatAttribute.createShininess(6f)), attrs);
+                        ColorAttribute.createDiffuse(0.12f, 0.022f, 0.030f, 1f),
+                        ColorAttribute.createSpecular(0.62f, 0.34f, 0.28f, 1f),
+                        FloatAttribute.createShininess(78f)), attrs);
         lightPointModel = createPointModel(
                 new Material(
-                        ColorAttribute.createDiffuse(0.88f, 0.79f, 0.62f, 1f),
-                        ColorAttribute.createSpecular(0.10f, 0.10f, 0.10f, 1f),
-                        FloatAttribute.createShininess(8f)),
+                        ColorAttribute.createDiffuse(0.86f, 0.72f, 0.49f, 1f),
+                        ColorAttribute.createSpecular(0.52f, 0.42f, 0.28f, 1f),
+                        FloatAttribute.createShininess(62f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.72f, 0.57f, 0.38f, 1f),
-                        ColorAttribute.createSpecular(0.08f, 0.08f, 0.08f, 1f),
-                        FloatAttribute.createShininess(6f)), attrs);
+                        ColorAttribute.createDiffuse(0.67f, 0.48f, 0.27f, 1f),
+                        ColorAttribute.createSpecular(0.70f, 0.52f, 0.30f, 1f),
+                        FloatAttribute.createShininess(82f)), attrs);
 
         for (int i = 0; i < 12; i++) {
             ModelInstance bottomPoint = new ModelInstance(
@@ -1087,7 +1090,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
 
         final float w = 0.40f;
         final float y0 = 0f;
-        final float y1 = 0.082f;
+        final float y1 = 0.115f;
         final float zBase = 1.55f;
         final float zTip = -1.55f;
 
@@ -1113,7 +1116,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         final float insetW = 0.345f;
         final float insetBase = 1.43f;
         final float insetTip = -1.40f;
-        final float insetY = y1 + 0.006f;
+        final float insetY = y1 + 0.010f;
 
         VertexInfo ia = new VertexInfo().set(
                 new Vector3(-insetW, insetY, insetBase), Vector3.Y, null,
