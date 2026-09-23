@@ -367,25 +367,25 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
                 int col = p < 12 ? p : 23 - p;
                 float x = XS[col];
                 float z = p < 12 ? -2.92f : 2.92f;
-                ModelInstance shadow = new ModelInstance(checkerShadowModel, x, 0.225f + i * 0.205f, z);
+                ModelInstance shadow = new ModelInstance(checkerShadowModel, x, 0.225f + i * 0.235f, z);
                 shadow.transform.scl(1.08f, 1f, 0.78f);
                 gameObjects.add(shadow); models.add(shadow);
-                ModelInstance piece = new ModelInstance(model, x, 0.315f + i * 0.205f, z);
+                ModelInstance piece = new ModelInstance(model, x, 0.315f + i * 0.235f, z);
                 gameObjects.add(piece); models.add(piece);
             }
         }
         for (int i = 0; i < lightBar; i++) {
-            ModelInstance shadow = new ModelInstance(checkerShadowModel, -0.95f, 0.43f + i * 0.40f, 0f);
+            ModelInstance shadow = new ModelInstance(checkerShadowModel, -0.95f, 0.43f + i * 0.27f, 0f);
             shadow.transform.scl(1.08f, 1f, 0.78f);
             gameObjects.add(shadow); models.add(shadow);
-            ModelInstance piece = new ModelInstance(lightChecker, -0.95f, 0.52f + i * 0.40f, 0f);
+            ModelInstance piece = new ModelInstance(lightChecker, -0.95f, 0.52f + i * 0.27f, 0f);
             gameObjects.add(piece); models.add(piece);
         }
         for (int i = 0; i < darkBar; i++) {
-            ModelInstance shadow = new ModelInstance(checkerShadowModel, 0.95f, 0.43f + i * 0.40f, 0f);
+            ModelInstance shadow = new ModelInstance(checkerShadowModel, 0.95f, 0.43f + i * 0.27f, 0f);
             shadow.transform.scl(1.08f, 1f, 0.78f);
             gameObjects.add(shadow); models.add(shadow);
-            ModelInstance piece = new ModelInstance(darkChecker, 0.95f, 0.52f + i * 0.40f, 0f);
+            ModelInstance piece = new ModelInstance(darkChecker, 0.95f, 0.52f + i * 0.27f, 0f);
             gameObjects.add(piece); models.add(piece);
         }
     }
@@ -397,19 +397,25 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         float x = XS[col];
         float z = point < 12 ? -2.92f : 2.92f;
         Model expected = points[point] > 0 ? lightChecker : darkChecker;
+        ModelInstance top = null;
+        float highestY = -Float.MAX_VALUE;
         for (ModelInstance instance : gameObjects) {
             if (instance.model != expected) continue;
             instance.transform.getTranslation(tmp);
-            if (Math.abs(tmp.x - x) < 0.08f && Math.abs(tmp.z - z) < 0.08f) return instance;
+            if (Math.abs(tmp.x - x) < 0.08f && Math.abs(tmp.z - z) < 0.08f
+                    && tmp.y > highestY) {
+                highestY = tmp.y;
+                top = instance;
+            }
         }
-        return null;
+        return top;
     }
 
     private Vector3 pointPosition(int point, int stackIndex) {
         int col = point < 12 ? point : 23 - point;
         float x = XS[col];
         float z = point < 12 ? -2.92f : 2.92f;
-        return new Vector3(x, 0.52f + stackIndex * 0.40f, z);
+        return new Vector3(x, 0.52f + stackIndex * 0.235f, z);
     }
 
     private void startMoveAnimation(ModelInstance piece, int from, int destination, int sourceStackIndex) {
@@ -423,7 +429,7 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         int destinationStackIndex = (points[destination] != 0 && ((points[destination] > 0) == lightTurn))
                 ? destinationCountBefore - 1 : destinationCountBefore;
         moveEnd.set(pointPosition(destination, Math.max(0, destinationStackIndex)));
-        moveEnd.y = 0.56f + Math.max(0, destinationStackIndex) * 0.40f;
+        moveEnd.y = 0.56f + Math.max(0, destinationStackIndex) * 0.235f;
 
         models.removeValue(piece, true);
         gameObjects.removeValue(piece, true);
