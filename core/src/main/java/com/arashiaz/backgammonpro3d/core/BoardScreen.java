@@ -734,32 +734,32 @@ public final class BoardScreen extends ScreenAdapter implements InputProcessor {
         // silhouette clean on modern phone displays while remaining lightweight.
         darkChecker = createBeveledCheckerModel(darkCheckerTexture,
                 new Material(
-                        ColorAttribute.createDiffuse(0.075f, 0.045f, 0.035f, 1f),
-                        ColorAttribute.createSpecular(0.62f, 0.54f, 0.46f, 1f),
-                        FloatAttribute.createShininess(86f)),
+                        ColorAttribute.createDiffuse(0.075f, 0.012f, 0.018f, 1f),
+                        ColorAttribute.createSpecular(0.88f, 0.34f, 0.30f, 1f),
+                        FloatAttribute.createShininess(138f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.26f, 0.14f, 0.095f, 1f),
-                        ColorAttribute.createSpecular(0.76f, 0.66f, 0.54f, 1f),
-                        FloatAttribute.createShininess(104f)),
+                        ColorAttribute.createDiffuse(0.28f, 0.022f, 0.030f, 1f),
+                        ColorAttribute.createSpecular(0.96f, 0.48f, 0.42f, 1f),
+                        FloatAttribute.createShininess(152f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.46f, 0.27f, 0.16f, 1f),
-                        ColorAttribute.createSpecular(0.86f, 0.72f, 0.55f, 1f),
-                        FloatAttribute.createShininess(118f)),
+                        ColorAttribute.createDiffuse(0.52f, 0.045f, 0.055f, 1f),
+                        ColorAttribute.createSpecular(1.0f, 0.58f, 0.50f, 1f),
+                        FloatAttribute.createShininess(166f)),
                 attrs);
 
         lightChecker = createBeveledCheckerModel(lightCheckerTexture,
                 new Material(
-                        ColorAttribute.createDiffuse(0.88f, 0.83f, 0.73f, 1f),
-                        ColorAttribute.createSpecular(0.72f, 0.66f, 0.55f, 1f),
-                        FloatAttribute.createShininess(78f)),
+                        ColorAttribute.createDiffuse(0.84f, 0.76f, 0.60f, 1f),
+                        ColorAttribute.createSpecular(0.86f, 0.74f, 0.52f, 1f),
+                        FloatAttribute.createShininess(118f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.98f, 0.94f, 0.84f, 1f),
-                        ColorAttribute.createSpecular(0.84f, 0.76f, 0.60f, 1f),
-                        FloatAttribute.createShininess(96f)),
+                        ColorAttribute.createDiffuse(0.98f, 0.91f, 0.73f, 1f),
+                        ColorAttribute.createSpecular(0.98f, 0.86f, 0.62f, 1f),
+                        FloatAttribute.createShininess(134f)),
                 new Material(
-                        ColorAttribute.createDiffuse(0.66f, 0.50f, 0.34f, 1f),
-                        ColorAttribute.createSpecular(0.48f, 0.40f, 0.30f, 1f),
-                        FloatAttribute.createShininess(86f)),
+                        ColorAttribute.createDiffuse(0.68f, 0.47f, 0.25f, 1f),
+                        ColorAttribute.createSpecular(0.72f, 0.54f, 0.32f, 1f),
+                        FloatAttribute.createShininess(104f)),
                 attrs);
 
         diceModel = createBeveledDieModel(diceTexture, attrs);
